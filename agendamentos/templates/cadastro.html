@@ -1,6 +1,61 @@
-<h1>Cadastro</h1>
-<form method="post">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit">Cadastrar</button>
-</form>
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Criar conta - Barber Shop</title>
+    <link rel="stylesheet" href="{% static 'agendamentos/barbearia.css' %}">
+</head>
+<body>
+
+    <section class="tela">
+        <div class="caixa-login">
+
+            <img src="{% static 'agendamentos/bigode.png' %}" class="bigode" alt="Logo da barbearia">
+
+            <h1>Criar conta</h1>
+            <p class="subtitulo">Cadastre-se na Barber Shop.</p>
+
+            <form method="post">
+                {% csrf_token %}
+
+                <div class="campo">
+                    <label for="nome">Nome</label>
+                    <input type="text" id="nome" name="nome" placeholder="Digite seu nome" required>
+                </div>
+
+                <div class="campo">
+                    <label for="email">E-mail</label>
+                    <input type="email" id="email" name="email" placeholder="Digite seu e-mail" required>
+                </div>
+
+                <div class="campo">
+                    <label for="telefone">Telefone</label>
+                    <input type="text" id="telefone" name="telefone" placeholder="Digite seu telefone" required>
+                </div>
+
+                <div class="campo">
+                    <label for="senha">Senha</label>
+                    <input type="password" id="senha" name="senha" placeholder="Crie sua senha" required>
+                </div>
+
+                <div class="campo">
+                    <label for="tipo">Tipo de conta</label>
+                    <select id="tipo" name="tipo" required>
+                        <option value="">Selecione o tipo de conta</option>
+                        <option value="cliente">Cliente</option>
+                        <option value="profissional">Profissional</option>
+                    </select>
+                </div>
+
+                <button type="submit" class="botao-principal">Criar conta</button>
+
+            </form>
+
+            <a href="{% url 'login' %}" class="botao-voltar">← Voltar para o login</a>
+
+        </div>
+    </section>
+
+</body>
+</html>

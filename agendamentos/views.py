@@ -5,6 +5,7 @@ from django.contrib.auth import authenticate
 from django.contrib.auth.decorators import login_required
 from .forms import CadastroForm
 from .models import Cliente, Profissional
+from django.contrib import messages
 
 
 def cadastro(request):
@@ -34,8 +35,8 @@ def cadastro(request):
                     telefone=dados['telefone']
                 )
 
-            login(request, usuario)
-            return redirect('home')
+            messages.success(request, 'Conta criada com sucesso! Faça login para continuar.')
+            return redirect('login')
     else:
         form = CadastroForm()
 

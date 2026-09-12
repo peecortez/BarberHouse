@@ -1,11 +1,50 @@
-<h1>Login</h1>
-<form method="post">
-    {% csrf_token %}
-    <label>E-mail:</label>
-    <input type="email" name="email" required>
-    <br>
-    <label>Senha:</label>
-    <input type="password" name="senha" required>
-    <br>
-    <button type="submit">Entrar</button>
-</form>
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Login - Barber Shop</title>
+    <link rel="stylesheet" href="{% static 'agendamentos/barbearia.css' %}">
+</head>
+<body>
+
+    <section class="tela">
+        <div class="caixa-login">
+
+            <img src="{% static 'agendamentos/bigode.png' %}" class="bigode" alt="Logo da barbearia">
+
+            <h1 class="nome-barbearia">Barber Shop</h1>
+            <p class="subtitulo">Seu estilo começa aqui.</p>
+            {% if messages %}
+    {% for message in messages %}
+        <p class="mensagem">{{ message }}</p>
+    {% endfor %}
+{% endif %}
+            
+            <form method="post">
+                {% csrf_token %}
+
+                <div class="campo">
+                    <label for="email">E-mail</label>
+                    <input type="email" id="email" name="email" placeholder="Digite seu e-mail" required>
+                </div>
+
+                <div class="campo">
+                    <label for="senha">Senha</label>
+                    <input type="password" id="senha" name="senha" placeholder="Digite sua senha" required>
+                </div>
+
+                <button type="submit" class="botao-principal">Entrar</button>
+
+            </form>
+
+            <div class="criar-conta-area">
+                <p>Não possui uma conta?</p>
+                <a href="{% url 'cadastro' %}" class="botao-secundario">Criar conta</a>
+            </div>
+
+        </div>
+    </section>
+
+</body>
+</html>

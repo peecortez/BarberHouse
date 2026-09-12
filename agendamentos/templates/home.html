@@ -1,2 +1,67 @@
-<h1>Bem-vindo!</h1>
-<p>Login realizado com sucesso.</p>
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Barber Shop</title>
+    <link rel="stylesheet" href="{% static 'agendamentos/barbearia.css' %}">
+</head>
+<body>
+
+    <section id="menuInicial" class="tela menu-inicial">
+        <h1>Bem-vindo!</h1>
+        <p class="subtitulo-menu">Escolha uma opção</p>
+
+        <div class="opcoes-menu-inicial">
+            <button class="opcao-menu-inicial" data-pagina="agenda">
+                <span class="icone-menu-inicial">📅</span>
+                <span>Agendar</span>
+            </button>
+            <button class="opcao-menu-inicial" data-pagina="atendimento">
+                <span class="icone-menu-inicial">✂️</span>
+                <span>Meus agendamentos</span>
+            </button>
+            <button class="opcao-menu-inicial" data-pagina="noticias">
+                <span class="icone-menu-inicial">📰</span>
+                <span>Notícias</span>
+            </button>
+            <button class="opcao-menu-inicial" data-pagina="mais">
+                <span class="icone-menu-inicial">⋮</span>
+                <span>Mais</span>
+            </button>
+        </div>
+    </section>
+
+    <section id="aplicativo" class="escondida">
+        <header class="cabecalho">
+            <div class="logo-pequena">
+                <img src="{% static 'agendamentos/bigode.png' %}" class="logo-bigode" alt="Logo da barbearia">
+                <strong class="nome-barbearia">Barber Shop</strong>
+            </div>
+            <button id="btnMenu" class="botao-menu">☰</button>
+        </header>
+
+        <nav id="menuNavegacao" class="menu-navegacao">
+            <button id="btnMenuInicial" class="item-menu item-menu-inicial">🏠 Menu inicial</button>
+            <button class="item-menu" data-pagina="agenda">📅 Agendar</button>
+            <button class="item-menu" data-pagina="atendimento">✂️ Meus agendamentos</button>
+            <button class="item-menu" data-pagina="noticias">📰 Notícias</button>
+            <button class="item-menu" data-pagina="mais">⋮ Mais</button>
+        </nav>
+
+        <main id="conteudoAgenda" class="conteudo">
+            <div class="icone-breve">✂</div>
+            <h2>Em breve</h2>
+            <p>Esta funcionalidade ainda está sendo preparada.</p>
+        </main>
+
+        <main id="conteudoEmBreve" class="conteudo escondido-conteudo">
+            <div class="icone-breve">✂</div>
+            <h2>Em breve</h2>
+            <p>Esta funcionalidade ainda está sendo preparada.</p>
+        </main>
+    </section>
+
+    <script src="{% static 'agendamentos/menu.js' %}"></script>
+</body>
+</html>
