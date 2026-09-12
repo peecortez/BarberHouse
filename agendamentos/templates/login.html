@@ -4,7 +4,8 @@
 <head>
     <meta charset="UTF-8">
     <title>Login - Barber Shop</title>
-    <link rel="stylesheet" href="{% static 'agendamentos/barbearia.css' %}">
+    <link rel="stylesheet" href="{% static 'agendamentos/barbearia.css' %}?v=5">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 </head>
 <body>
 
@@ -16,12 +17,12 @@
             <h1 class="nome-barbearia">Barber Shop</h1>
             <p class="subtitulo">Seu estilo começa aqui.</p>
             {% if messages %}
-    {% for message in messages %}
-        <p class="mensagem">{{ message }}</p>
-    {% endfor %}
-{% endif %}
-            
-            <form method="post">
+                {% for message in messages %}
+                    <p class="mensagem">{{ message }}</p>
+                {% endfor %}
+            {% endif %}
+
+            <form method="post" id="formLogin">
                 {% csrf_token %}
 
                 <div class="campo">
@@ -45,6 +46,21 @@
 
         </div>
     </section>
+
+    <div id="overlayCarregando" style="display:none; position:fixed; inset:0; z-index:999; flex-direction:column; align-items:center; justify-content:center; background:rgba(11,12,14,0.92);">
+        <div class="animacao-barbearia">
+            <div class="loading-corte">
+                <i class="fa-solid fa-scissors tesoura-loading"></i>
+            </div>
+        </div>
+        <p class="texto-loading">Preparando seu atendimento...</p>
+    </div>
+
+    <script>
+     document.getElementById('formLogin').addEventListener('submit', function () {
+        document.getElementById('overlayCarregando').style.display = 'flex';
+     });
+    </script>
 
 </body>
 </html>

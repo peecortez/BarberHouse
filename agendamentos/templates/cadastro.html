@@ -4,7 +4,8 @@
 <head>
     <meta charset="UTF-8">
     <title>Criar conta - Barber Shop</title>
-    <link rel="stylesheet" href="{% static 'agendamentos/barbearia.css' %}">
+    <link rel="stylesheet" href="{% static 'agendamentos/barbearia.css' %}?v=5">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 </head>
 <body>
 
@@ -16,7 +17,7 @@
             <h1>Criar conta</h1>
             <p class="subtitulo">Cadastre-se na Barber Shop.</p>
 
-            <form method="post">
+            <form method="post" id="formCadastro">
                 {% csrf_token %}
 
                 <div class="campo">
@@ -56,6 +57,21 @@
 
         </div>
     </section>
+
+    <div id="overlayCarregando" style="display:none; position:fixed; inset:0; z-index:999; flex-direction:column; align-items:center; justify-content:center; background:rgba(11,12,14,0.92);">
+        <div class="animacao-barbearia">
+            <div class="loading-corte">
+                <i class="fa-solid fa-scissors tesoura-loading"></i>
+            </div>
+        </div>
+        <p class="texto-loading">Criando sua conta...</p>
+    </div>
+
+    <script>
+     document.getElementById('formCadastro').addEventListener('submit', function () {
+        document.getElementById('overlayCarregando').style.display = 'flex';
+     });
+    </script>
 
 </body>
 </html>

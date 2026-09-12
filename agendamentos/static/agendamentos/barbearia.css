@@ -1,4 +1,4 @@
-@import url("https://fonts.googleapis.com/css2?family=Ewert&family=Rye&display=swap");
+@import url("https://googleapis.com");
 
 * {
     margin: 0;
@@ -8,669 +8,522 @@
 
 body {
     min-height: 100vh;
-    font-family: Georgia, "Times New Roman", serif;
-    color: #f1e7d0;
-    background-color: #17110d;
+    font-family: 'Inter', sans-serif;
+    color: #e2e8f0;
+    background-color: #0b0c0e;
+    -webkit-font-smoothing: antialiased;
 }
 
 .escondida {
     display: none !important;
 }
 
-
-.tela,
-#aplicativo {
-    min-height: 100vh;
-
-    background-color: #21150f;
-
-    background-image:
-        repeating-linear-gradient(
-            0deg,
-            rgba(255,255,255,0.025) 0px,
-            rgba(255,255,255,0.025) 2px,
-            transparent 2px,
-            transparent 7px
-        ),
-        repeating-linear-gradient(
-            90deg,
-            rgba(0,0,0,0.12) 0px,
-            rgba(0,0,0,0.12) 3px,
-            transparent 3px,
-            transparent 35px
-        ),
-        linear-gradient(
-            90deg,
-            #160e0a,
-            #382116,
-            #24150e,
-            #402519,
-            #1b100b
-        );
-}
-
-
+/* ==========================================
+   CONFIGURAÇÃO DA TELA DE LOGIN / CADASTRO
+   ========================================== */
 .tela {
+    min-height: 100vh;
+    background-image: 
+        linear-gradient(rgba(11, 12, 14, 0.5), rgba(11, 12, 14, 0.75)), 
+        url('/static/agendamentos/fundo-barbearia.jpg'); 
+    background-size: cover;
+    background-position: center center;
+    background-attachment: fixed;
+    background-repeat: no-repeat;
+    
     display: flex;
     justify-content: center;
     align-items: center;
-    padding: 20px;
+    padding: 24px;
+    box-sizing: border-box;
 }
 
 .caixa-login {
     width: 100%;
-    max-width: 430px;
-
-    padding: 45px 40px;
-
-    background:
-        linear-gradient(
-            145deg,
-            rgba(35, 25, 20, 0.98),
-            rgba(18, 14, 12, 0.98)
-        );
-
-    border: 1px solid #79502f;
-
-    border-radius: 8px;
-
-    box-shadow:
-        0 20px 50px rgba(0,0,0,0.65),
-        inset 0 0 30px rgba(0,0,0,0.35);
-
+    max-width: 400px;
+    padding: 40px 30px;
+    background: rgba(21, 23, 28, 0.75); 
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 16px;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6);
     text-align: center;
+    display: flex;
+    flex-direction: column;
 }
 
-
 .bigode {
-    width: 125px;
-    height: 70px;
+    width: 100px;
+    height: 100px;
     object-fit: contain;
     display: block;
-    margin: 0 auto 18px;
-
-    filter:
-        drop-shadow(0 0 8px rgba(200,117,50,0.25));
+    margin: 0 auto 16px;
+    filter: drop-shadow(0 4px 12px rgba(0,0,0,0.5));
 }
 
 .caixa-login h1 {
-    font-size: 42px;
-    letter-spacing: 2px;
-    color: #f2dfc0;
-
-    text-shadow:
-        2px 2px 4px #000;
-}
-
-.nome-barbearia {
-    font-family: "Ewert", Georgia, serif;
-    font-weight: normal;
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 800;
+    font-size: 30px;
+    letter-spacing: -0.5px;
+    color: #ffffff;
+    text-transform: uppercase;
+    margin-bottom: 4px;
 }
 
 .subtitulo {
-    margin-top: 8px;
-    margin-bottom: 30px;
-
-    color: #a99a88;
-    font-size: 15px;
+    margin-bottom: 28px;
+    color: #9fa4b4;
+    font-size: 14px;
+    font-weight: 400;
 }
 
-
+/* FORMULÁRIOS */
 .campo {
     margin-bottom: 20px;
     text-align: left;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
 }
 
 .campo label {
     display: block;
-
-    font-family: "Rye", Georgia, serif;
-
-    margin-bottom: 7px;
-
-    color: #d28a4a;
-
-    font-size: 14px;
-    font-weight: bold;
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: #e2a053;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
 .campo input,
 .campo select {
     width: 100%;
-
-    padding: 13px 14px;
-
-    background-color: #110d0a;
-
-    border: 1px solid #5b4635;
-
-    border-radius: 5px;
-
-    color: #f1e7d0;
-
+    padding: 14px 16px;
+    background-color: rgba(15, 17, 21, 0.7);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    color: #ffffff;
+    font-family: 'Inter', sans-serif;
     font-size: 15px;
-
     outline: none;
+    transition: all 0.2s ease;
+}
 
-    transition: 0.2s;
+.campo input::placeholder {
+    color: #5a6072;
 }
 
 .campo input:hover,
 .campo select:hover {
-    background-color: #1d120d;
-
-    border-color: #d27a32;
-
-    box-shadow:
-        0 0 5px rgba(210,122,50,0.75),
-        0 0 12px rgba(210,122,50,0.45),
-        inset 0 0 8px rgba(210,122,50,0.12);
+    border-color: rgba(255, 255, 255, 0.2);
+    background-color: rgba(21, 24, 30, 0.8);
 }
 
 .campo input:focus,
 .campo select:focus {
-    border-color: #d27a32;
-
-    box-shadow:
-        0 0 0 2px rgba(210,122,50,0.12);
+    border-color: #e2a053;
+    background-color: rgba(15, 17, 21, 0.9);
+    box-shadow: 0 0 0 3px rgba(226, 160, 83, 0.2);
 }
-
-.campo input::placeholder {
-    color: #776b60;
-}
-
 
 .botao-principal {
     width: 100%;
-
-    padding: 14px;
-
+    padding: 15px;
     border: none;
-    border-radius: 5px;
-
-    background:
-        linear-gradient(
-            135deg,
-            #a9551e,
-            #d27b32
-        );
-
-    color: #fff5e5;
-
-    font-size: 16px;
-    font-weight: bold;
-
+    border-radius: 10px;
+    background: #e2a053;
+    color: #0b0c0e;
+    font-family: 'Inter', sans-serif;
+    font-size: 15px;
+    font-weight: 700;
     cursor: pointer;
-
-    transition: 0.25s;
-
-    box-shadow:
-        0 5px 15px rgba(0,0,0,0.4);
+    margin-top: 10px;
+    transition: all 0.2s ease;
+    box-shadow: 0 4px 12px rgba(226, 160, 83, 0.2);
 }
 
 .botao-principal:hover {
-    transform: translateY(-2px);
-
-    filter: brightness(1.12);
+    background: #f1b267;
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px rgba(226, 160, 83, 0.3);
 }
 
 .criar-conta-area {
-    margin-top: 25px;
-
-    padding-top: 25px;
-
-    border-top: 1px solid #49372a;
+    margin-top: 24px;
+    padding-top: 20px;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .criar-conta-area p {
     margin-bottom: 12px;
-
-    color: #9d9185;
+    color: #9fa4b4;
+    font-size: 14px;
 }
 
 .botao-secundario {
-    padding: 10px 20px;
-
-    border: 1px solid #a96532;
-
-    border-radius: 5px;
-
+    display: inline-block;
+    padding: 10px 24px;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 10px;
     background: transparent;
-
-    color: #d28a4a;
-
+    color: #ffffff;
+    font-size: 14px;
+    font-weight: 600;
     cursor: pointer;
-
-    transition: 0.2s;
+    text-decoration: none;
+    transition: all 0.2s ease;
 }
 
 .botao-secundario:hover {
-    background-color: #a96532;
-
-    color: white;
+    background-color: rgba(255, 255, 255, 0.05);
+    border-color: #e2a053;
+    color: #e2a053;
 }
 
 .botao-voltar {
-    margin-top: 20px;
-
+    margin-top: 16px;
     background: none;
-
     border: none;
-
-    color: #a99a88;
-
+    color: #707587;
+    font-size: 14px;
     cursor: pointer;
+    transition: color 0.2s ease;
 }
 
 .botao-voltar:hover {
-    color: #d28a4a;
+    color: #e2a053;
 }
 
-
 .mensagem {
-    margin-top: 15px;
-
+    margin-top: 14px;
     font-size: 14px;
-
-    color: #d99155;
-
+    color: #f87171;
     min-height: 20px;
 }
 
-
-/* ANIMAÇÃO DA TESOURA */
-
-.loading {
-    flex-direction: column;
-
-    text-align: center;
-}
-
-.animacao-barbearia {
-    width: 260px;
-    height: 180px;
-
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-
-.loading-corte {
-    position: relative;
-
-    width: 220px;
-    height: 100px;
-
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-
-.tesoura-loading {
-    position: absolute;
-
-    left: 50%;
-    top: 50%;
-
-    font-size: 48px;
-
-    color: #d68a48;
-
-    transform:
-        translate(-50%, -50%);
-
-    filter:
-        drop-shadow(0 0 8px rgba(200,117,50,0.25));
-
-    animation:
-        movimento-tesoura 0.7s ease-in-out infinite;
-}
-
-@keyframes movimento-tesoura {
-
-    0% {
-        transform:
-            translate(-50%, -50%)
-            rotate(-12deg);
-    }
-
-    50% {
-        transform:
-            translate(-50%, -50%)
-            rotate(12deg);
-    }
-
-    100% {
-        transform:
-            translate(-50%, -50%)
-            rotate(-12deg);
-    }
-
-}
-
-.texto-loading {
-    margin-top: 20px;
-
-    color: #c98a51;
-
-    font-size: 17px;
-
-    letter-spacing: 1px;
-}
-
-
-/* MENU INICIAL */
-
+/* ==========================================
+   MENU INICIAL DO SISTEMA
+   ========================================== */
 .menu-inicial {
     flex-direction: column;
     text-align: center;
 }
 
 .menu-inicial h1 {
-    font-size: 34px;
-    color: #f2dfc0;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 36px;
+    color: #ffffff;
     margin-bottom: 8px;
-
-    text-shadow:
-        2px 2px 4px #000;
 }
 
 .subtitulo-menu {
-    color: #a99a88;
+    color: #9fa4b4;
     font-size: 15px;
-    margin-bottom: 35px;
+    margin-bottom: 40px;
 }
 
 .opcoes-menu-inicial {
     width: 100%;
-    max-width: 520px;
-
+    max-width: 560px;
     display: grid;
     grid-template-columns: repeat(2, 1fr);
-    gap: 35px 45px;
+    gap: 24px;
 }
 
 .opcao-menu-inicial {
-    border: none;
-    background: transparent;
-
-    color: #d28a4a;
-
+    background: rgba(21, 23, 28, 0.75); 
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    padding: 28px;
+    border-radius: 16px;
+    color: #ffffff;
     font-family: inherit;
     font-size: 16px;
-
+    font-weight: 600;
     cursor: pointer;
-
     display: flex;
     flex-direction: column;
     align-items: center;
-
-    gap: 10px;
-
-    transition: 0.2s;
-}
-
-.icone-menu-inicial {
-    width: 105px;
-    height: 105px;
-
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
-    border-radius: 50%;
-
-    background-color: #50301d;
-
-    border: 1px solid #94552a;
-
-    font-size: 43px;
-
-    box-shadow:
-        0 8px 20px rgba(0,0,0,0.4);
-
-    transition: 0.2s;
+    gap: 16px;
+    transition: all 0.2s ease;
 }
 
 .opcao-menu-inicial:hover {
-    color: #f2dfc0;
-    transform: translateY(-3px);
+    transform: translateY(-4px);
+    border-color: #e2a053;
+    background: rgba(25, 28, 35, 0.85);
+    box-shadow: 0 12px 24px rgba(0,0,0,0.4);
+}
+
+.icone-menu-inicial {
+    width: 70px;
+    height: 70px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 12px;
+    background-color: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    font-size: 30px;
+    color: #e2a053;
+    transition: all 0.2s ease;
 }
 
 .opcao-menu-inicial:hover .icone-menu-inicial {
-    background-color: #75401f;
-
-    border-color: #d27a32;
-
-    box-shadow:
-        0 0 5px rgba(210,122,50,0.75),
-        0 0 12px rgba(210,122,50,0.45),
-        inset 0 0 8px rgba(210,122,50,0.12);
+    background-color: #e2a053;
+    color: #0b0c0e;
 }
 
-
-/* CABEÇALHO */
+/* ==========================================
+   SISTEMA INTERNO (LOGADO) E CENTRALIZAÇÃO ABSOLUTA
+   ========================================== */
+#aplicativo {
+    min-height: 100vh;
+    background-image: 
+        linear-gradient(rgba(11, 12, 14, 0.65), rgba(11, 12, 14, 0.85)), 
+        url('/static/agendamentos/fundo-barbearia.jpg'); 
+    background-size: cover;
+    background-position: center center;
+    background-attachment: fixed;
+    background-repeat: no-repeat;
+    display: block; 
+    text-align: left;
+}
 
 .cabecalho {
     height: 70px;
-
     display: flex;
     align-items: center;
     justify-content: space-between;
-
-    padding: 0 30px;
-
-    background-color: rgba(15,10,8,0.94);
-
-    border-bottom: 1px solid #5b4029;
+    padding: 0 32px;
+    background-color: rgba(17, 19, 23, 0.95);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .logo-pequena {
     display: flex;
     align-items: center;
     gap: 12px;
-
-    color: #f0dfc5;
-
-    font-size: 20px;
+    color: #ffffff;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 18px;
+    font-weight: 700;
 }
 
 .logo-pequena .logo-bigode {
-    width: 52px;
-    height: 38px;
-
+    width: 40px;
+    height: 40px;
     object-fit: contain;
-
-    display: block;
-
-    filter:
-        drop-shadow(0 0 6px rgba(209,123,54,0.25));
 }
-
 
 .menu-navegacao {
     position: fixed;
-
     left: 0;
     top: 70px;
-
-    width: 240px;
-
+    width: 250px;
     height: calc(100vh - 70px);
-
-    padding: 25px 15px;
-
-    background-color: rgba(19,13,10,0.97);
-
-    border-right: 1px solid #543a27;
+    padding: 24px 16px;
+    background-color: rgba(17, 19, 23, 0.95);
+    backdrop-filter: blur(10px);
+    border-right: 1px solid rgba(255, 255, 255, 0.08);
+    z-index: 10;
 }
 
 .item-menu {
     display: block;
-
     width: 100%;
-
-    padding: 15px;
-
-    margin-bottom: 8px;
-
+    padding: 14px 16px;
+    margin-bottom: 6px;
     border: none;
-
     background: transparent;
-
-    color: #aaa097;
-
+    color: #9fa4b4;
     text-align: left;
-
     font-family: inherit;
-
     font-size: 15px;
-
-    border-radius: 5px;
-
+    font-weight: 500;
+    border-radius: 8px;
     cursor: pointer;
-
-    transition: 0.2s;
+    transition: all 0.15s ease;
 }
 
 .item-menu:hover {
-    background-color: #302017;
-
-    color: #e0c5a5;
+    background-color: rgba(255, 255, 255, 0.05);
+    color: #ffffff;
 }
 
 .item-menu.ativo {
-    background-color: #6f3b1c;
-
-    color: #fff2df;
-
-    border-left: 3px solid #d47c35;
+    background-color: rgba(226, 160, 83, 0.15);
+    color: #e2a053;
+    font-weight: 600;
 }
-
-
-/* MENU INICIAL DENTRO DO MENU LATERAL */
 
 .item-menu-inicial {
-    border-bottom: 1px solid #49372a;
-
-    border-radius: 0 0 5px 5px;
-
-    margin-bottom: 18px;
-
-    color: #d28a4a;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 0;
+    margin-bottom: 16px;
+    padding-bottom: 16px;
+    color: #e2a053;
 }
-
-.item-menu-inicial:hover {
-    color: #f2dfc0;
-}
-
 
 .botao-menu {
     display: none;
-
     background: transparent;
-
     border: none;
-
-    color: #d47c35;
-
-    font-size: 25px;
-
+    color: #e2a053;
+    font-size: 24px;
     cursor: pointer;
 }
 
-
-/* CONTEÚDO */
-
+/* ÁREA DE CONTEÚDO TOTALMENTE CENTRALIZADA COM FLEXBOX */
 .conteudo {
-    margin-left: 240px;
-
+    margin-left: 250px;
     padding: 40px;
-
-    min-height: calc(100vh - 70px);
+    height: calc(100vh - 70px);
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: center !important; 
+    align-items: center !important;     
+    text-align: center !important;
 }
-
-.conteudo h2 {
-    font-size: 32px;
-
-    color: #edddc6;
-
-    margin-bottom: 8px;
-}
-
-
-.escondido-conteudo {
-    display: none;
-}
-
 
 #conteudoAgenda,
 #conteudoEmBreve {
-    text-align: center;
-
-    padding-top: 100px;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    text-align: center !important;
+    width: 100% !important;
+    animation: fadeIn 0.4s ease;
 }
 
-.icone-breve {
-    font-size: 60px;
-
-    color: #c87332;
-
-    margin-bottom: 15px;
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
 }
 
-#conteudoAgenda h2,
-#conteudoEmBreve h2 {
-    margin-bottom: 10px;
+.conteudo h2 {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 36px;
+    color: #ffffff;
+    margin-bottom: 12px;
 }
 
 #conteudoAgenda p,
 #conteudoEmBreve p {
-    color: #968a7e;
+    color: #9fa4b4;
+    font-size: 16px;
+    max-width: 500px;
+    margin: 0 auto;
+    line-height: 1.5;
 }
 
+.icone-breve {
+    font-size: 56px;
+    color: #e2a053;
+    margin-bottom: 16px;
+}
 
-@media (max-width: 768px) {
+/* ==========================================
+   ANIMAÇÃO DA TESOURA RECONSTRUÍDA E TRAVADA
+   ========================================== */
+.loading {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    text-align: center !important;
+    width: 100% !important;
+    margin-bottom: 20px;
+}
 
-    .botao-menu {
-        display: block;
+.tela .loading {
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: center !important;
+    align-items: center !important;
+    min-height: 200px;
+    width: 100%;
+}
+.animacao-barbearia {
+    width: 260px;
+    height: 120px;
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+}
+
+.loading-corte {
+    position: relative !important;
+    width: 220px;
+    height: 100px;
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+}
+
+.tesoura-loading {
+    position: absolute !important;
+    left: 50% !important;
+    top: 50% !important;
+    font-size: 54px !important;
+    color: #e2a053 !important;
+    display: inline-block !important;
+    transform: translate(-50%, -50%) rotate(-12deg) !important;
+    animation: movimento-tesoura 0.7s ease-in-out infinite !important;
+}
+
+@keyframes movimento-tesoura {
+    0% { 
+        transform: translate(-50%, -50%) rotate(-12deg) !important; 
     }
+    50% { 
+        transform: translate(-50%, -50%) rotate(12deg) !important; 
+    }
+    100% { 
+        transform: translate(-50%, -50%) rotate(-12deg) !important; 
+    }
+}
 
+.texto-loading {
+    margin-top: 16px;
+    color: #9fa4b4;
+    font-size: 15px;
+    letter-spacing: 1px;
+}
+
+/* RESPONSIVIDADE */
+@media (max-width: 768px) {
+    .botao-menu { 
+        display: block; 
+    }
     .menu-navegacao {
         transform: translateX(-100%);
-
-        transition: 0.3s;
-
-        z-index: 10;
+        transition: transform 0.3s ease;
+        z-index: 100;
+        box-shadow: 20px 0 40px rgba(0,0,0,0.5);
     }
-
-    .menu-navegacao.aberto {
-        transform: translateX(0);
+    .menu-navegacao.aberto { 
+        transform: translateX(0); 
     }
-
-    .conteudo {
-        margin-left: 0;
-
-        padding: 25px 15px;
+    .conteudo { 
+        margin-left: 0; 
+        padding: 32px 20px; 
     }
-
-    .caixa-login {
-        padding: 35px 25px;
+    .caixa-login { 
+        padding: 32px 24px; 
     }
-
-    .caixa-login h1 {
-        font-size: 34px;
+    .caixa-login h1 { 
+        font-size: 26px; 
     }
-
-    .opcoes-menu-inicial {
-        gap: 25px 20px;
+    .opcoes-menu-inicial { 
+        grid-template-columns: 1fr; 
+        gap: 16px; 
     }
-
-    .icone-menu-inicial {
-        width: 85px;
-        height: 85px;
-
-        font-size: 35px;
-    }
-
 }
+

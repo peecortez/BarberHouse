@@ -9,6 +9,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const conteudoAgenda = document.getElementById("conteudoAgenda");
     const conteudoEmBreve = document.getElementById("conteudoEmBreve");
     const opcoesMenuInicial = document.querySelectorAll(".opcao-menu-inicial");
+    const loadingGlobal = document.querySelector(".loading");
 
     function mostrarPagina(pagina) {
         menuInicial.classList.add("escondida");
@@ -21,12 +22,28 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         });
 
-        conteudoAgenda.style.display = "block";
-        conteudoEmBreve.style.display = "none";
+        // Remove de vez qualquer trava de display antiga injetada pelo navegador
+        conteudoAgenda.style.removeProperty("display");
+        conteudoEmBreve.style.removeProperty("display");
 
-        if (pagina !== "agenda") {
-            conteudoAgenda.style.display = "none";
-            conteudoEmBreve.style.display = "block";
+        // Gerencia visibilidade usando estritamente as classes estruturadas
+        if (pagina === "agenda") {
+            conteudoAgenda.classList.remove("escondida");
+            conteudoEmBreve.classList.add("escondida");
+            
+            conteudoAgenda.style.setProperty("display", "flex", "important");
+            conteudoEmBreve.style.setProperty("display", "none", "important");
+        } else {
+            conteudoAgenda.classList.add("escondida");
+            conteudoEmBreve.classList.remove("escondida");
+            
+            conteudoAgenda.style.setProperty("display", "none", "important");
+            conteudoEmBreve.style.setProperty("display", "flex", "important");
+        }
+
+        if (loadingGlobal) {
+            loadingGlobal.classList.add("escondida");
+            loadingGlobal.style.setProperty("display", "none", "important");
         }
     }
 
@@ -43,17 +60,20 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 
-    btnMenu.addEventListener("click", function () {
-        menuNavegacao.classList.toggle("aberto");
-    });
-
-    btnMenuInicial.addEventListener("click", function () {
-        aplicativo.classList.add("escondida");
-        menuInicial.classList.remove("escondida");
-        menuNavegacao.classList.remove("aberto");
-        itensMenu.forEach(function (item) {
-            item.classList.remove("ativo");
+    if (btnMenu) {
+        btnMenu.addEventListener("click", function () {
+            menuNavegacao.classList.toggle("aberto");
         });
-    });
+    }
 
+    if (btnMenuInicial) {
+        btnMenuInicial.addEventListener("click", function () {
+            aplicativo.classList.add("escondida");
+            menuInicial.classList.remove("escondida");
+            menuNavegacao.classList.remove("aberto");
+            itensMenu.forEach(function (item) {
+                item.classList.remove("ativo");
+            });
+        });
+    }
 });
