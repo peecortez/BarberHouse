@@ -4,14 +4,12 @@
 <head>
     <meta charset="UTF-8">
     <title>Barber Shop</title>
-    <!-- Link do seu CSS com quebra de cache atualizada -->
     <link rel="stylesheet" href="{% static 'agendamentos/barbearia.css' %}?v=6">
-    <!-- Biblioteca essencial para renderizar a tesoura e os ícones do menu -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 </head>
 <body>
 
-    <!-- MENU INICIAL DE BLOCOS (GLASSMORPHISM) -->
+  
     <section id="menuInicial" class="tela menu-inicial">
         <h1>Bem-vindo!</h1>
         <p class="subtitulo-menu">Escolha uma opção</p>
@@ -36,10 +34,9 @@
         </div>
     </section>
 
-    <!-- PAINEL DO APLICATIVO LOGADO -->
     <section id="aplicativo" class="escondida">
         
-        <!-- ELEMENTO DA TESOURA ANIMADA DE LOADING -->
+>
         <div class="loading escondida">
             <div class="animacao-barbearia">
                 <div class="loading-corte">
@@ -49,7 +46,7 @@
             <p class="texto-loading">Carregando...</p>
         </div>
 
-        <!-- CABEÇALHO SUPERIOR -->
+
         <header class="cabecalho">
             <div class="logo-pequena">
                 <img src="{% static 'agendamentos/bigode.png' %}" class="logo-bigode" alt="Logo da barbearia">
@@ -60,7 +57,7 @@
             </button>
         </header>
 
-        <!-- NAVEGAÇÃO LATERAL (SÓ APARECE EM TELAS MAIORES OU SE ABERTO NO CELULAR) -->
+ 
         <nav id="menuNavegacao" class="menu-navegacao">
             <button id="btnMenuInicial" class="item-menu item-menu-inicial">📌 Menu Inicial</button>
             <button class="item-menu" data-pagina="agenda">📅 Agendar</button>
@@ -68,16 +65,18 @@
             <button class="item-menu" data-pagina="noticias">📰 Notícias</button>
         </nav>
 
-        <!-- ÁREA CENTRAL DE CONTEÚDO (MENSAGENS DO APP) -->
+   
         <main class="conteudo">
             
-            <!-- Seção: Agenda -->
+     
             <div id="conteudoAgenda" class="escondida">
-                <h2>Agende seu Horário</h2>
-                <p>Escolha o profissional e o melhor momento para o seu estilo.</p>
+                <div class="icone-breve">
+                    <i class="fa-solid fa-scissors"></i>
+                </div>
+                <h2>Em breve</h2>
+                <p>Esta funcionalidade ainda está sendo preparada pela nossa equipe.</p>
             </div>
 
-            <!-- Seção: Em Breve (Disparada para os outros botões do menu) -->
             <div id="conteudoEmBreve" class="escondida">
                 <div class="icone-breve">
                     <i class="fa-solid fa-scissors"></i>
@@ -90,7 +89,6 @@
 
     </section>
 
-    <!-- ASSINATURA DO JAVASCRIPT QUE GERENCIA O FLUXO DE TELAS -->
     <script src="{% static 'agendamentos/menu.js' %}"></script>
 
 </body>
