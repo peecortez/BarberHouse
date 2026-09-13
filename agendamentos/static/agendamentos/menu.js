@@ -22,11 +22,10 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         });
 
-        // Remove de vez qualquer trava de display antiga injetada pelo navegador
         conteudoAgenda.style.removeProperty("display");
         conteudoEmBreve.style.removeProperty("display");
 
-        // Gerencia visibilidade usando estritamente as classes estruturadas
+       
         if (pagina === "agenda") {
             conteudoAgenda.classList.remove("escondida");
             conteudoEmBreve.classList.add("escondida");
