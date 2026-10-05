@@ -1,4 +1,9 @@
 venv/
 __pycache__/
 *.pyc
+.env
+*.log
+output.txt
+curl.out
 db.sqlite3
+.idea/

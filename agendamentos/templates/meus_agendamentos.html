@@ -1,0 +1,53 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Meus Agendamentos - Barber Shop</title>
+    <link rel="stylesheet" href="{% static 'agendamentos/barbearia.css' %}?v=6">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+</head>
+<body>
+    <section class="tela">
+        <div class="caixa-login" style="width: 90%; max-width: 600px;">
+            <h1>Meus Agendamentos</h1>
+            <p class="subtitulo">Visualize e gerencie seus agendamentos</p>
+
+            {% if agendamentos %}
+                <div class="tabela-agendamentos">
+                    {% for agendamento in agendamentos %}
+                    <div class="agendamento-item">
+                        <div class="agendamento-info">
+                            <h3>{{ agendamento.servico.nome }}</h3>
+                            <p><strong>Profissional:</strong> {{ agendamento.profissional.nome }}</p>
+                            <p><strong>Data e Hora:</strong> {{ agendamento.data_hora|date:"d/m/Y H:i" }}</p>
+                            <p><strong>Valor:</strong> R$ {{ agendamento.servico.preco }}</p>
+                            {% if tipo == 'profissional' %}
+                                <p><strong>Cliente:</strong> {{ agendamento.cliente.nome }}</p>
+                            {% endif %}
+                        </div>
+                        {% if tipo == 'profissional' %}
+                            <div class="agendamento-actions">
+                                <button class="botao-secundario btn-concluir" data-id="{{ agendamento.id }}">
+                                    Concluir
+                                </button>
+                                <button class="botao-secundario btn-cancelar" data-id="{{ agendamento.id }}">
+                                    Cancelar
+                                </button>
+                            </div>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p>Você não tem nenhum agendamento agendado.</p>
+                {% if tipo == 'profissional' %}
+                    <p>Comece a oferecer seus serviços para receber agendamentos.</p>
+                {% else %}
+                    <p>Agende seu primeiro serviço clicando em "Agendar" no menu principal.</p>
+                {% endif %}
+            {% endif %}
+        </div>
+    </section>
+</body>
+</html>

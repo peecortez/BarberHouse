@@ -1,0 +1,58 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Agendar Serviço - Barber Shop</title>
+    <link rel="stylesheet" href="{% static 'agendamentos/barbearia.css' %}?v=6">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+</head>
+<body>
+    <section class="tela">
+        <div class="caixa-login" style="width: 90%; max-width: 500px;">
+            <h1>Agendar Serviço</h1>
+            <p class="subtitulo">Escolha o serviço, profissional e horário</p>
+
+            <form id="formAgendamento">
+                {% csrf_token %}
+
+                <div class="campo">
+                    <label for="servico">Serviço</label>
+                    <select id="servico" name="servico" required>
+                        <option value="">Selecione um serviço</option>
+                        {% for servico in servicos %}
+                        <option value="{{ servico.id }}">{{ servico.nome }} - {{ servico.duracao_minutos }}min - R$ {{ servico.preco }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="campo">
+                    <label for="profissional">Profissional</label>
+                    <select id="profissional" name="profissional" required>
+                        <option value="">Selecione um profissional</option>
+                        {% for profissional in profissionais %}
+                        <option value="{{ profissional.id }}">{{ profissional.nome }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="campo">
+                    <label for="data">Data</label>
+                    <input type="date" id="data" name="data" min="{{ today|date:'Y-m-d' }}" required>
+                </div>
+
+                <div class="campo">
+                    <label for="horario">Horário</label>
+                    <select id="horario" name="horario" required>
+                        <option value="">Selecione um horário</option>
+                    </select>
+                </div>
+
+                <button type="submit" class="botao-principal">Agendar</button>
+            </form>
+
+            <div id="mensagemAgendamento" style="margin-top: 20px; padding: 15px; border-radius: 5px; display: none;"></div>
+        </div>
+    </section>
+</body>
+</html>

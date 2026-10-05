@@ -1,0 +1,62 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Gerenciar Agenda - Barber Shop</title>
+    <link rel="stylesheet" href="{% static 'agendamentos/barbearia.css' %}?v=6">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+</head>
+<body>
+    <section class="tela">
+        <div class="caixa-login" style="width: 90%; max-width: 600px;">
+            <h1>Gerenciar Minha Agenda</h1>
+            <p class="subtitulo">Controle seus serviços e disponibilidade</p>
+
+            <div class="configuracoes">
+                <div class="campo">
+                    <label>Status da Agenda</label>
+                    <div class="toggle-agenda">
+                        <button id="btnToggleAgenda" class="botao-principal">
+                            {{ profissional.agenda_aberta|yesno:"Fechar Agenda,Abrir Agenda" }}
+                        </button>
+                        <span id="statusAgenda" class="status-indicator">
+                            {{ profissional.agenda_aberta|yesno:"Aberta,Fechada" }}
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="secao-servicos">
+                <h2>Meus Serviços</h2>
+                <p>Selecione os serviços que você oferece:</p>
+
+                <div class="lista-servicos">
+                    {% for servico in todos_servicos %}
+                    <div class="servico-item">
+                        <div class="servico-info">
+                            <input type="checkbox" id="servico_{{ servico.id }}"
+                                   data-servico-id="{{ servico.id }}"
+                                   {% if servico in servicos_ofertados %}checked{% endif %}>
+                            <label for="servico_{{ servico.id }}">
+                                <strong>{{ servico.nome }}</strong><br>
+                                <small>{{ servico.duracao_minutos }}min - R$ {{ servico.preco }}</small>
+                            </label>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            {% if servicos_ofertados %}
+                <div class="secao-agendamentos">
+                    <h2>Meus Agendamentos</h2>
+                    <p>Próximos atendimentos:</p>
+
+                    <p><em>Agendamentos serão exibidos aqui quando houver reservas.</em></p>
+                </div>
+            {% endif %}
+        </div>
+    </section>
+</body>
+</html>
