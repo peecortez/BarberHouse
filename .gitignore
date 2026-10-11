@@ -7,3 +7,5 @@ output.txt
 curl.out
 db.sqlite3
 .idea/
+.agents/
+.claude/

@@ -1,10 +1,10 @@
-{% load static %}
+{% load static versao_static %}
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <title>Barber Shop</title>
-    <link rel="stylesheet" href="{% static 'agendamentos/barbearia.css' %}?v=6">
+    <link rel="stylesheet" href="{% static_v 'agendamentos/barbearia.css' %}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 </head>
 <body>
@@ -13,16 +13,22 @@
     <section id="menuInicial" class="tela menu-inicial">
         <h1>Bem-vindo!</h1>
         <p class="subtitulo-menu">Escolha uma opção</p>
-
         <div class="opcoes-menu-inicial">
-            <button class="opcao-menu-inicial" data-pagina="agenda">
-                <span class="icone-menu-inicial">📅</span>
-                <span>Agendar</span>
-            </button>
-            <button class="opcao-menu-inicial" data-pagina="atendimento">
-                <span class="icone-menu-inicial">✂️</span>
-                <span>Meus agendamentos</span>
-            </button>
+            {% if tipo == 'cliente' %}
+                <button class="opcao-menu-inicial" data-pagina="agenda">
+                    <span class="icone-menu-inicial">📅</span>
+                    <span>Agendar</span>
+                </button>
+                <button class="opcao-menu-inicial" data-pagina="atendimento">
+                    <span class="icone-menu-inicial">✂️</span>
+                    <span>Meus agendamentos</span>
+                </button>
+            {% else %}  <!-- profissional -->
+                <button class="opcao-menu-inicial" data-pagina="minha-agenda">
+                    <span class="icone-menu-inicial">📅</span>
+                    <span>Minha Agenda</span>
+                </button>
+            {% endif %}
             <button class="opcao-menu-inicial" data-pagina="noticias">
                 <span class="icone-menu-inicial">📰</span>
                 <span>Notícias</span>
@@ -32,6 +38,11 @@
                 <span>Mais</span>
             </button>
         </div>
+        <!-- Logout button in top-right corner of initial menu -->
+        <form method="post" action="{% url 'logout' %}" class="logout-form-top">
+            {% csrf_token %}
+            <button type="submit" class="botao-logout">Sair</button>
+        </form>
     </section>
 
     <section id="aplicativo" class="escondida">
@@ -55,13 +66,21 @@
             <button id="btnMenu" class="botao-menu">
                 <i class="fa-solid fa-bars"></i>
             </button>
+            <form method="post" action="{% url 'logout' %}" class="logout-form">
+                {% csrf_token %}
+                <button type="submit" class="botao-logout">Sair</button>
+            </form>
         </header>
 
  
         <nav id="menuNavegacao" class="menu-navegacao">
             <button id="btnMenuInicial" class="item-menu item-menu-inicial">📌 Menu Inicial</button>
-            <button class="item-menu" data-pagina="agenda">📅 Agendar</button>
-            <button class="item-menu" data-pagina="atendimento">✂️ Meus agendamentos</button>
+            {% if tipo == 'cliente' %}
+                <button class="item-menu" data-pagina="agenda">📅 Agendar</button>
+                <button class="item-menu" data-pagina="atendimento">✂️ Meus agendamentos</button>
+            {% else %}  <!-- profissional -->
+                <button class="item-menu" data-pagina="minha-agenda">📅 Minha Agenda</button>
+            {% endif %}
             <button class="item-menu" data-pagina="noticias">📰 Notícias</button>
         </nav>
 
@@ -89,7 +108,7 @@
 
     </section>
 
-    <script src="{% static 'agendamentos/menu.js' %}"></script>
+    <script src="{% static_v 'agendamentos/menu.js' %}"></script>
 
 </body>
 </html>

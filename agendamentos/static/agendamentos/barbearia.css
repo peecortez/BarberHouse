@@ -12,6 +12,7 @@ body {
     color: #e2e8f0;
     background-color: #0b0c0e;
     -webkit-font-smoothing: antialiased;
+    padding-top: 70px; /* Compensate for fixed header */
 }
 
 .escondida {
@@ -195,11 +196,53 @@ body {
     color: #e2a053;
 }
 
+/* Discreet logout button */
+.botao-logout {
+    background: transparent;
+    border: none;
+    color: #e2a053;
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    padding: 8px 12px;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+}
+
+.botao-logout:hover {
+    background: rgba(226, 160, 83, 0.1);
+    color: #ffffff;
+}
+
+.botao-logout:active {
+    transform: scale(0.98);
+}
+
+/* Logout button positioned in top-right corner */
+.logout-form-top {
+    position: absolute;
+    top: 24px;
+    right: 24px;
+    z-index: 100;
+}
+
+.logout-form-top .botao-logout {
+    /* Inherits the base .botao-logout styles */
+}
+
 .mensagem {
     margin-top: 14px;
     font-size: 14px;
-    color: #f87171;
     min-height: 20px;
+}
+
+.mensagem.erro {
+    color: #f87171;
+}
+
+.mensagem.sucesso {
+    color: #4ade80;
 }
 
 
@@ -297,6 +340,11 @@ body {
     background-color: rgba(17, 19, 23, 0.95);
     backdrop-filter: blur(10px);
     border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 20;
 }
 
 .logo-pequena {

@@ -128,3 +128,4 @@ MAILERS = {
 }
 
 LOGIN_URL = 'login'
+LOGOUT_REDIRECT_URL = 'login'

@@ -1,10 +1,10 @@
-{% load static %}
+{% load static versao_static %}
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <title>Login - Barber Shop</title>
-    <link rel="stylesheet" href="{% static 'agendamentos/barbearia.css' %}?v=5">
+    <link rel="stylesheet" href="{% static_v 'agendamentos/barbearia.css' %}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 </head>
 <body>
@@ -18,7 +18,13 @@
             <p class="subtitulo">Seu estilo começa aqui.</p>
             {% if messages %}
                 {% for message in messages %}
-                    <p class="mensagem">{{ message }}</p>
+                    {% if message.tags == 'success' %}
+                        <p class="mensagem sucesso">{{ message }}</p>
+                    {% elif message.tags == 'error' %}
+                        <p class="mensagem erro">{{ message }}</p>
+                    {% else %}
+                        <p class="mensagem">{{ message }}</p>
+                    {% endif %}
                 {% endfor %}
             {% endif %}
 

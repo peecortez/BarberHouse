@@ -1,17 +1,18 @@
-{% load static %}
+{% load static versao_static %}
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <title>Gerenciar Agenda - Barber Shop</title>
-    <link rel="stylesheet" href="{% static 'agendamentos/barbearia.css' %}?v=6">
+    <title>Minha Agenda</title>
+    <link rel="stylesheet" href="{% static_v 'agendamentos/barbearia.css' %}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 </head>
 <body>
     <section class="tela">
         <div class="caixa-login" style="width: 90%; max-width: 600px;">
-            <h1>Gerenciar Minha Agenda</h1>
-            <p class="subtitulo">Controle seus serviços e disponibilidade</p>
+            {% include '_navegacao.html' %}
+            <h1>Minha Agenda</h1>
+            <p class="subtitulo">Seus agendamentos</p>
 
             <div class="configuracoes">
                 <div class="campo">
@@ -27,36 +28,40 @@
                 </div>
             </div>
 
-            <div class="secao-servicos">
-                <h2>Meus Serviços</h2>
-                <p>Selecione os serviços que você oferece:</p>
-
-                <div class="lista-servicos">
-                    {% for servico in todos_servicos %}
-                    <div class="servico-item">
-                        <div class="servico-info">
-                            <input type="checkbox" id="servico_{{ servico.id }}"
-                                   data-servico-id="{{ servico.id }}"
-                                   {% if servico in servicos_ofertados %}checked{% endif %}>
-                            <label for="servico_{{ servico.id }}">
-                                <strong>{{ servico.nome }}</strong><br>
-                                <small>{{ servico.duracao_minutos }}min - R$ {{ servico.preco }}</small>
-                            </label>
+            {% if agendamentos %}
+                <div class="agendamentos-list">
+                    <h3>Próximos Agendamentos</h3>
+                    {% for agendamento in agendamentos %}
+                        <div class="agendamento-item">
+                            <div class="agendamento-info">
+                                <span class="servico">{{ agendamento.servico.nome }}</span>
+                                <span class="cliente">{{ agendamento.cliente.nome }}</span>
+                                <span class="data-hora">{{ agendamento.data_hora|date:"d/m/Y H:i" }}</span>
+                                <span class="status">{{ agendamento.get_status_display }}</span>
+                            </div>
+                            {% if agendamento.status == 'AGENDADO' or agendamento.status == 'CONFIRMADO' %}
+                                <div class="agendamento-actions">
+                                    {% if agendamento.status == 'AGENDADO' %}
+                                        <button class="botao-secundario" data-id="{{ agendamento.id }}" data-acao="confirmar">
+                                            Confirmar
+                                        </button>
+                                    {% endif %}
+                                    <button class="botao-secundario" data-id="{{ agendamento.id }}" data-acao="concluir">
+                                        Concluir
+                                    </button>
+                                    <button class="botao-secundario" data-id="{{ agendamento.id }}" data-acao="cancelar">
+                                        Cancelar
+                                    </button>
+                                </div>
+                            {% endif %}
                         </div>
-                    </div>
                     {% endfor %}
                 </div>
-            </div>
-
-            {% if servicos_ofertados %}
-                <div class="secao-agendamentos">
-                    <h2>Meus Agendamentos</h2>
-                    <p>Próximos atendimentos:</p>
-
-                    <p><em>Agendamentos serão exibidos aqui quando houver reservas.</em></p>
-                </div>
+            {% else %}
+                <p>Nenhum agendamento encontrado.</p>
             {% endif %}
         </div>
     </section>
+    <script src="{% static_v 'agendamentos/menu.js' %}"></script>
 </body>
 </html>

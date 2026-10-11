@@ -1,3 +1,21 @@
+// Helper function to get cookie value by name
+// FIXED: Added getCookie for CSRF token in status update buttons
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            // Does this cookie string begin with the name we want?
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
 document.addEventListener('DOMContentLoaded', function () {
 
     const aplicativo = document.getElementById("aplicativo");
@@ -12,6 +30,8 @@ document.addEventListener('DOMContentLoaded', function () {
     const loadingGlobal = document.querySelector(".loading");
 
     function mostrarPagina(pagina) {
+        const rotas = { agenda: "/agenda-cliente/", atendimento: "/meus-agendamentos/", noticias: "/noticias/", mais: "/mais/", "minha-agenda": "/gerenciar-agenda/" };
+        if (rotas[pagina]) { window.location.href = rotas[pagina]; return; }
         menuInicial.classList.add("escondida");
         aplicativo.classList.remove("escondida");
 
@@ -25,17 +45,17 @@ document.addEventListener('DOMContentLoaded', function () {
         conteudoAgenda.style.removeProperty("display");
         conteudoEmBreve.style.removeProperty("display");
 
-       
+
         if (pagina === "agenda") {
             conteudoAgenda.classList.remove("escondida");
             conteudoEmBreve.classList.add("escondida");
-            
+
             conteudoAgenda.style.setProperty("display", "flex", "important");
             conteudoEmBreve.style.setProperty("display", "none", "important");
         } else {
             conteudoAgenda.classList.add("escondida");
             conteudoEmBreve.classList.remove("escondida");
-            
+
             conteudoAgenda.style.setProperty("display", "none", "important");
             conteudoEmBreve.style.setProperty("display", "flex", "important");
         }
@@ -75,4 +95,41 @@ document.addEventListener('DOMContentLoaded', function () {
             });
         });
     }
+
+    // Handle status change buttons
+    document.addEventListener('click', function(e) {
+        const button = e.target.closest('button[data-acao][data-id]');
+        if (!button) return;
+
+        const acao = button.getAttribute('data-acao');
+        const id = button.getAttribute('data-id');
+
+        // Disable button to prevent double clicks
+        button.disabled = true;
+
+        fetch(`/agendamento/${id}/status/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: JSON.stringify({ acao: acao })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Reload the page to reflect the new status
+                window.location.reload();
+            } else {
+                showMessage(data.error || 'Erro desconhecido', 'error');
+                button.disabled = false;
+            }
+        })
+        .catch(error => {
+            console.error('Error updating status:', error);
+            showMessage('Erro ao atualizar status', 'error');
+            button.disabled = false;
+        });
+    });
+
 });
