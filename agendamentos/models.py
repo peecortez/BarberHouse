@@ -8,7 +8,7 @@ class Cliente(models.Model):
     email = models.EmailField(unique=True)
     telefone = models.CharField(max_length=15)
 
- 
+
 class Profissional(models.Model):
     usuario = models.OneToOneField(User, on_delete=models.CASCADE)
     nome = models.CharField(max_length=100)
@@ -24,8 +24,19 @@ class Servico(models.Model):
 
 
 class Agendamento(models.Model):
+    class Status(models.TextChoices):
+        AGENDADO = 'AGENDADO', 'Agendado'
+        CONFIRMADO = 'CONFIRMADO', 'Confirmado'
+        CONCLUIDO = 'CONCLUIDO', 'Concluído'
+        CANCELADO = 'CANCELADO', 'Cancelado'
+
     cliente = models.ForeignKey(Cliente, on_delete=models.CASCADE)
     profissional = models.ForeignKey(Profissional, on_delete=models.CASCADE)
     servico = models.ForeignKey(Servico, on_delete=models.CASCADE)
     data_hora = models.DateTimeField()
     criado_em = models.DateTimeField(auto_now_add=True)
+    status = models.CharField(
+        max_length=12,
+        choices=Status.choices,
+        default=Status.AGENDADO,
+    )

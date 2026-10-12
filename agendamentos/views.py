@@ -1,4 +1,4 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.models import User
 from django.contrib.auth import login
 from django.contrib.auth import authenticate
@@ -10,6 +10,7 @@ from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
 import json
 from datetime import datetime, timedelta
+from django.utils import timezone
 
 
 def cadastro(request):
@@ -41,6 +42,8 @@ def cadastro(request):
 
             messages.success(request, 'Conta criada com sucesso! Faça login para continuar.')
             return redirect('login')
+        else:
+            messages.error(request, 'Por favor, corrija os erros no formulário.')
     else:
         form = CadastroForm()
 
@@ -54,64 +57,72 @@ def login_view(request):
         usuario = authenticate(request, username=email, password=senha)
         if usuario is not None:
             login(request, usuario)
+            messages.success(request, 'Login realizado com sucesso!')
             return redirect('home')
+        else:
+            messages.error(request, 'Senha incorreta')
     return render(request, 'login.html')
 
 
 @login_required
 def home(request):
-    return render(request, 'home.html')
+    # Determine user type
+    if hasattr(request.user, 'profissional'):
+        tipo = 'profissional'
+    else:
+        tipo = 'cliente'
+    return render(request, "home.html", {'tipo': tipo})
 
 
 @login_required
 def agenda_cliente(request):
-    """View for clients to schedule appointments"""
-    if not hasattr(request.user, 'cliente'):
-        messages.error(request, 'Acesso negado. Esta área é apenas para clientes.')
-        return redirect('home')
+    if not hasattr(request.user, "cliente"):
+        messages.error(request, "Acesso negado. Esta área é apenas para clientes.")
+        return redirect("home")
 
     cliente = request.user.cliente
     servicos = Servico.objects.all()
     profissionais = Profissional.objects.filter(agenda_aberta=True)
-
+    from datetime import date
     context = {
-        'cliente': cliente,
-        'servicos': servicos,
-        'profissionais': profissionais
+        "cliente": cliente,
+        "servicos": servicos,
+        "profissionais": profissionais,
+        "today": date.today()
     }
-    return render(request, 'agenda_cliente.html', context)
+    return render(request, "agenda_cliente.html", context)
 
 
 @login_required
 def horarios_disponiveis(request):
     """API endpoint to get available time slots for a service and professional"""
-    if request.method != 'GET':
-        return JsonResponse({'error': 'Method not allowed'}, status=405)
+    if request.method != "GET":
+        return JsonResponse({"error": "Method not allowed"}, status=405)
 
-    servico_id = request.GET.get('servico')
-    profissional_id = request.GET.get('profissional')
-    data_str = request.GET.get('data')
+    servico_id = request.GET.get("servico")
+    profissional_id = request.GET.get("profissional")
+    data_str = request.GET.get("data")
 
     if not all([servico_id, profissional_id, data_str]):
-        return JsonResponse({'error': 'Missing required parameters'}, status=400)
+        return JsonResponse({"error": "Missing required parameters"}, status=400)
 
     try:
         servico = Servico.objects.get(id=servico_id)
         profissional = Profissional.objects.get(id=profissional_id)
         data = datetime.strptime(data_str, '%Y-%m-%d').date()
     except (Servico.DoesNotExist, Profissional.DoesNotExist, ValueError):
-        return JsonResponse({'error': 'Invalid parameters'}, status=400)
+        return JsonResponse({"error": "Invalid parameters"}, status=400)
 
     # Get existing appointments for this professional on this date with their services
     existentes = Agendamento.objects.filter(
         profissional=profissional,
         data_hora__date=data
-    ).select_related('servico')
+    ).exclude(status=Agendamento.Status.CANCELADO).select_related('servico')
 
     # Generate time slots from 8:00 to 18:00
     horarios = []
-    hora_inicio = datetime.combine(data, datetime.min.time().replace(hour=8))
-    hora_fim = datetime.combine(data, datetime.min.time().replace(hour=18))
+    hora_inicio = timezone.make_aware(datetime.combine(data, datetime.min.time().replace(hour=8)))
+    hora_fim = timezone.make_aware(datetime.combine(data, datetime.min.time().replace(hour=18)))
 
     atual = hora_inicio
     while atual < hora_fim:
@@ -133,73 +144,106 @@ def horarios_disponiveis(request):
 
         atual += timedelta(minutes=30)  # 30-minute intervals
 
-    return JsonResponse({'horarios': horarios})
+    return JsonResponse({"horarios": horarios})
 
 
 @login_required
 def agendar_servico(request):
-    """View to create a new appointment"""
+    """View to create a new appointment - accepts both JSON and form-encoded data"""
     if request.method != 'POST':
         return JsonResponse({'error': 'Method not allowed'}, status=405)
 
     if not hasattr(request.user, 'cliente'):
         return JsonResponse({'error': 'Access denied'}, status=403)
 
+    # Try to parse JSON body; if fails, treat as form data
     try:
         data = json.loads(request.body)
         servico_id = data.get('servico_id')
         profissional_id = data.get('profissional_id')
         data_hora_str = data.get('data_hora')
+        is_json = True
+    except json.JSONDecodeError:
+        data = None
+        is_json = False
 
-        if not all([servico_id, profissional_id, data_hora_str]):
+    if not is_json:
+        # Fallback to form-encoded data
+        servico_id = request.POST.get('servico')
+        profissional_id = request.POST.get('profissional')
+        data_str = request.POST.get('data')
+        horario_str = request.POST.get('horario')
+        if not all([servico_id, profissional_id, data_str, horario_str]):
+            if is_json:
+                return JsonResponse({'error': 'Missing required fields'}, status=400)
+            else:
+                messages.error(request, 'Campos obrigatórios faltando.')
+                return redirect('agenda_cliente')
+        data_hora_str = f"{data_str}T{horario_str}"
+
+    # Validate presence of required fields
+    if not all([servico_id, profissional_id, data_hora_str]):
+        if is_json:
             return JsonResponse({'error': 'Missing required fields'}, status=400)
+        else:
+            messages.error(request, 'Campos obrigatórios faltando.')
+            return redirect('agenda_cliente')
 
+    try:
         servico = Servico.objects.get(id=servico_id)
         profissional = Profissional.objects.get(id=profissional_id)
-        data_hora = datetime.strptime(data_hora_str, '%Y-%m-%dT%H:%M')
+        data_hora = timezone.make_aware(datetime.strptime(data_hora_str, '%Y-%m-%dT%H:%M'))
+    except (Servico.DoesNotExist, Profissional.DoesNotExist, ValueError):
+        if is_json:
+            return JsonResponse({'error': 'Invalid data'}, status=400)
+        else:
+            messages.error(request, 'Dados inválidos.')
+            return redirect('agenda_cliente')
 
-        # Check if the time slot is still available
-        conflito = Agendamento.objects.filter(
-            profissional=profissional,
-            data_hora=data_hora
-        ).exists()
+    # Check if the time slot is still available
+    conflito = Agendamento.objects.filter(
+        profissional=profissional,
+        data_hora=data_hora
+    ).exclude(status=Agendamento.Status.CANCELADO).exists()
 
-        if conflito:
+    if conflito:
+        if is_json:
             return JsonResponse({'error': 'Time slot no longer available'}, status=409)
+        else:
+            messages.error(request, 'Horário não disponível.')
+            return redirect('agenda_cliente')
 
-        # Create the appointment
-        agendamento = Agendamento.objects.create(
-            cliente=request.user.cliente,
-            profissional=profissional,
-            servico=servico,
-            data_hora=data_hora
-        )
+    # Create the appointment
+    agendamento = Agendamento.objects.create(
+        cliente=request.user.cliente,
+        profissional=profissional,
+        servico=servico,
+        data_hora=data_hora
+    )
 
+    # Return appropriate response based on request type
+    if is_json:
         return JsonResponse({
             'success': True,
-            'message': 'Appointment scheduled successfully!',
+            'message': 'Agendamento realizado com sucesso!',
             'agendamento_id': agendamento.id
         })
-
-    except (Servico.DoesNotExist, Profissional.DoesNotExist, ValueError) as e:
-        return JsonResponse({'error': 'Invalid data'}, status=400)
-    except json.JSONDecodeError:
-        return JsonResponse({'error': 'Invalid JSON'}, status=400)
+    else:
+        messages.success(request, 'Agendamento realizado com sucesso!')
+        return redirect('meus_agendamentos')
 
 
 @login_required
 def meus_agendamentos(request):
     """View for users to see their appointments"""
+    if hasattr(request.user, 'profissional'):
+        return redirect('gerenciar_agenda')
+
     if hasattr(request.user, 'cliente'):
         agendamentos = Agendamento.objects.filter(
             cliente=request.user.cliente
         ).select_related('servico', 'profissional').order_by('data_hora')
         tipo = 'cliente'
-    elif hasattr(request.user, 'profissional'):
-        agendamentos = Agendamento.objects.filter(
-            profissional=request.user.profissional
-        ).select_related('servico', 'cliente').order_by('data_hora')
-        tipo = 'profissional'
     else:
         agendamentos = []
         tipo = None
@@ -219,50 +263,14 @@ def gerenciar_agenda(request):
         return redirect('home')
 
     profissional = request.user.profissional
-    servicos_ofertados = profissional.servico_set.all()
-    todos_servicos = Servico.objects.all()
-
+    agendamentos = Agendamento.objects.filter(
+        profissional=profissional
+    ).select_related('servico', 'cliente').order_by('data_hora')
     context = {
         'profissional': profissional,
-        'servicos_ofertados': servicos_ofertados,
-        'todos_servicos': todos_servicos
+        'agendamentos': agendamentos
     }
     return render(request, 'gerenciar_agenda.html', context)
-
-
-@login_required
-@require_http_methods(["POST"])
-def toggle_servico_ofertado(request):
-    """API endpoint for professionals to add/remove services they offer"""
-    if not hasattr(request.user, 'profissional'):
-        return JsonResponse({'error': 'Access denied'}, status=403)
-
-    try:
-        data = json.loads(request.body)
-        servico_id = data.get('servico_id')
-        adicionar = data.get('adicionar', False)
-
-        servico = Servico.objects.get(id=servico_id)
-        profissional = request.user.profissional
-
-        if adicionar:
-            profissional.servico_set.add(servico)
-            message = 'Service added to your offerings'
-        else:
-            profissional.servico_set.remove(servico)
-            message = 'Service removed from your offerings'
-
-        return JsonResponse({
-            'success': True,
-            'message': message
-        })
-
-    except Servico.DoesNotExist:
-        return JsonResponse({'error': 'Service not found'}, status=404)
-    except json.JSONDecodeError:
-        return JsonResponse({'error': 'Invalid JSON'}, status=400)
-    except Exception as e:
-        return JsonResponse({'error': 'Internal server error'}, status=500)
 
 
 @login_required
@@ -285,9 +293,72 @@ def toggle_agenda_aberta(request):
             'message': f'Agenda now {status}',
             'agenda_aberta': profissional.agenda_aberta
         })
-
     except Exception as e:
         return JsonResponse({'error': 'Internal server error'}, status=500)
+
+
+@login_required
+@require_http_methods(["POST"])
+def atualizar_status(request, agendamento_id):
+    agendamento = get_object_or_404(Agendamento, id=agendamento_id)
+    try:
+        data = json.loads(request.body)
+        acao = data.get('acao')
+    except json.JSONDecodeError:
+        return JsonResponse({'error': 'Invalid JSON'}, status=400)
+
+    if acao not in ['confirmar', 'concluir', 'cancelar']:
+        return JsonResponse({'error': 'Invalid action'}, status=400)
+
+    # Check permissions and transitions
+    user = request.user
+    is_profissional = hasattr(user, 'profissional')
+    is_cliente = hasattr(user, 'cliente')
+
+    if is_profissional:
+        profissional = user.profissional
+        if agendamento.profissional != profissional:
+            return JsonResponse({'error': 'Permission denied'}, status=403)
+    elif is_cliente:
+        cliente = user.cliente
+        if agendamento.cliente != cliente:
+            return JsonResponse({'error': 'Permission denied'}, status=403)
+    else:
+        return JsonResponse({'error': 'Permission denied'}, status=403)
+
+    current_status = agendamento.status
+    new_status = None
+
+    if acao == 'confirmar':
+        if current_status != Agendamento.Status.AGENDADO:
+            return JsonResponse({'error': 'Invalid status transition'}, status=409)
+        new_status = Agendamento.Status.CONFIRMADO
+        # Only the dono profissional can confirm
+        if not is_profissional or agendamento.profissional != user.profissional:
+            return JsonResponse({'error': 'Permission denied'}, status=403)
+    elif acao == 'concluir':
+        if current_status not in [Agendamento.Status.AGENDADO, Agendamento.Status.CONFIRMADO]:
+            return JsonResponse({'error': 'Invalid status transition'}, status=409)
+        new_status = Agendamento.Status.CONCLUIDO
+        # Only the dono profissional can concluir
+        if not is_profissional or agendamento.profissional != user.profissional:
+            return JsonResponse({'error': 'Permission denied'}, status=403)
+    elif acao == 'cancelar':
+        if current_status not in [Agendamento.Status.AGENDADO, Agendamento.Status.CONFIRMADO]:
+            return JsonResponse({'error': 'Invalid status transition'}, status=409)
+        new_status = Agendamento.Status.CANCELADO
+        # Either the dono profissional or the dono cliente can cancel
+        if not ( (is_profissional and agendamento.profissional == user.profissional) or
+                 (is_cliente and agendamento.cliente == user.cliente) ):
+            return JsonResponse({'error': 'Permission denied'}, status=403)
+
+    agendamento.status = new_status
+    agendamento.save()
+
+    return JsonResponse({
+        'success': True,
+        'status': agendamento.get_status_display()
+    })
 
 
 def noticias(request):

@@ -1,15 +1,16 @@
-{% load static %}
+{% load static versao_static %}
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <title>Meus Agendamentos - Barber Shop</title>
-    <link rel="stylesheet" href="{% static 'agendamentos/barbearia.css' %}?v=6">
+    <link rel="stylesheet" href="{% static_v 'agendamentos/barbearia.css' %}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 </head>
 <body>
     <section class="tela">
         <div class="caixa-login" style="width: 90%; max-width: 600px;">
+            {% include '_navegacao.html' %}
             <h1>Meus Agendamentos</h1>
             <p class="subtitulo">Visualize e gerencie seus agendamentos</p>
 
@@ -22,16 +23,11 @@
                             <p><strong>Profissional:</strong> {{ agendamento.profissional.nome }}</p>
                             <p><strong>Data e Hora:</strong> {{ agendamento.data_hora|date:"d/m/Y H:i" }}</p>
                             <p><strong>Valor:</strong> R$ {{ agendamento.servico.preco }}</p>
-                            {% if tipo == 'profissional' %}
-                                <p><strong>Cliente:</strong> {{ agendamento.cliente.nome }}</p>
-                            {% endif %}
+                            <p><strong>Status:</strong> {{ agendamento.get_status_display }}</p>
                         </div>
-                        {% if tipo == 'profissional' %}
+                        {% if agendamento.status == 'AGENDADO' or agendamento.status == 'CONFIRMADO' %}
                             <div class="agendamento-actions">
-                                <button class="botao-secundario btn-concluir" data-id="{{ agendamento.id }}">
-                                    Concluir
-                                </button>
-                                <button class="botao-secundario btn-cancelar" data-id="{{ agendamento.id }}">
+                                <button class="botao-secundario" data-id="{{ agendamento.id }}" data-acao="cancelar">
                                     Cancelar
                                 </button>
                             </div>
@@ -41,13 +37,10 @@
                 </div>
             {% else %}
                 <p>Você não tem nenhum agendamento agendado.</p>
-                {% if tipo == 'profissional' %}
-                    <p>Comece a oferecer seus serviços para receber agendamentos.</p>
-                {% else %}
-                    <p>Agende seu primeiro serviço clicando em "Agendar" no menu principal.</p>
-                {% endif %}
+                <p>Agende seu primeiro serviço clicando em "Agendar" no menu principal.</p>
             {% endif %}
         </div>
     </section>
+    <script src="{% static_v 'agendamentos/menu.js' %}"></script>
 </body>
 </html>

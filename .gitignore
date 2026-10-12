@@ -7,3 +7,9 @@ output.txt
 curl.out
 db.sqlite3
 .idea/
+.agents/
+.claude/
+taste-skill/
+awesome-design-md/
+open-design/
+Userspeedr.claudeskillstaste-skill/
