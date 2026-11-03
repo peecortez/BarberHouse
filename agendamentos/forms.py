@@ -1,4 +1,5 @@
 from django import forms
+from django.core.exceptions import ValidationError
 from django.contrib.auth.models import User
 from .models import Cliente, Profissional, Servico, Agendamento
 
@@ -13,6 +14,31 @@ class CadastroForm(forms.Form):
     email = forms.EmailField(label='E-mail')
     telefone = forms.CharField(max_length=15, label='Telefone')
     senha = forms.CharField(widget=forms.PasswordInput, label='Senha')
+    senha_confirmacao = forms.CharField(
+        widget=forms.PasswordInput,
+        label="Confirmar Senha",
+    )
+
+    def clean(self):
+        dados = super().clean()
+        senha = dados.get("senha")
+        confirmacao = dados.get("senha_confirmacao")
+        if senha and confirmacao and senha != confirmacao:
+            self.add_error(
+                "senha_confirmacao",
+                "As senhas n\u00e3o coincidem.",
+            )
+        return dados
+
+    def clean_email(self):
+        email = self.cleaned_data["email"].strip().lower()
+        if (
+            User.objects.filter(username__iexact=email).exists()
+            or Cliente.objects.filter(email__iexact=email).exists()
+            or Profissional.objects.filter(email__iexact=email).exists()
+        ):
+            raise ValidationError("Este e-mail ja esta cadastrado. Entre ou use outro.")
+        return email
 
 class AgendamentoForm(forms.ModelForm):
     class Meta:

@@ -1,3 +1,52 @@
+
+function confirmarAcao(mensagem) {
+    return new Promise(resolve => {
+        const dialog = document.createElement("dialog");
+        dialog.className = "confirmacao-dialog";
+        dialog.setAttribute("aria-labelledby", "tituloConfirmacao");
+        dialog.setAttribute("aria-describedby", "mensagemConfirmacao");
+
+        const titulo = document.createElement("h2");
+        titulo.id = "tituloConfirmacao";
+        titulo.textContent = "Estamos quase l\u00e1";
+
+        const texto = document.createElement("p");
+        texto.id = "mensagemConfirmacao";
+        texto.textContent = mensagem;
+
+        const botoes = document.createElement("div");
+        botoes.className = "confirmacao-acoes";
+
+        const voltar = document.createElement("button");
+        voltar.type = "button";
+        voltar.className = "botao-secundario";
+        voltar.textContent = "Voltar";
+        voltar.addEventListener("click", () => dialog.close("cancel"));
+
+        const confirmar = document.createElement("button");
+        confirmar.type = "button";
+        confirmar.className = "botao-principal";
+        confirmar.textContent = "Confirmar";
+        confirmar.addEventListener("click", () => dialog.close("confirm"));
+
+        botoes.append(voltar, confirmar);
+        dialog.append(titulo, texto, botoes);
+        dialog.addEventListener("cancel", event => {
+            event.preventDefault();
+            dialog.close("cancel");
+        });
+        dialog.addEventListener("close", () => {
+            const aceito = dialog.returnValue === "confirm";
+            dialog.remove();
+            resolve(aceito);
+        });
+
+        document.body.appendChild(dialog);
+        dialog.showModal();
+        voltar.focus();
+    });
+}
+
 // Helper function to get cookie value by name
 // FIXED: Added getCookie for CSRF token in status update buttons
 function getCookie(name) {
@@ -100,6 +149,21 @@ document.addEventListener('DOMContentLoaded', function () {
     // Horario loading - only on agenda page where the form exists
     const formEl = document.getElementById('formAgendamento');
     if (formEl) {
+        let agendamentoConfirmado = false;
+        formEl.addEventListener('submit', async function (event) {
+            if (agendamentoConfirmado) {
+                agendamentoConfirmado = false;
+                return;
+            }
+
+            event.preventDefault();
+            const aceito = await confirmarAcao('Deseja confirmar este agendamento?');
+            if (aceito) {
+                agendamentoConfirmado = true;
+                formEl.requestSubmit();
+            }
+        });
+
         const baseUrl = formEl.dataset.horariosUrl;
 
         const servicoSelect = document.getElementById('servico');
@@ -158,13 +222,42 @@ document.addEventListener('DOMContentLoaded', function () {
         // FormAgendamento not found - skipping horario loading (not on agenda page)
     }
 
+    const btnToggleAgenda = document.getElementById("btnToggleAgenda");
+    if (btnToggleAgenda) {
+        btnToggleAgenda.addEventListener("click", function () {
+            btnToggleAgenda.disabled = true;
+            fetch("/toggle-agenda-aberta/", {
+                method: "POST",
+                headers: { "X-CSRFToken": getCookie("csrftoken") }
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        window.location.reload();
+                    } else {
+                        showMessage(data.error || "Erro ao atualizar a agenda", "error");
+                        btnToggleAgenda.disabled = false;
+                    }
+                })
+                .catch(() => {
+                    showMessage("Erro ao atualizar a agenda", "error");
+                    btnToggleAgenda.disabled = false;
+                });
+        });
+    }
+
     // Handle status change buttons
-    document.addEventListener('click', function(e) {
+    document.addEventListener('click', async function(e) {
         const button = e.target.closest('button[data-acao][data-id]');
         if (!button) return;
 
         const acao = button.getAttribute('data-acao');
         const id = button.getAttribute('data-id');
+
+        if (acao === 'cancelar') {
+            const aceito = await confirmarAcao('Deseja cancelar este agendamento?');
+            if (!aceito) return;
+        }
 
         // Disable button to prevent double clicks
         button.disabled = true;

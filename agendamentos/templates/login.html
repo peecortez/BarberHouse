@@ -38,7 +38,12 @@
 
                 <div class="campo">
                     <label for="senha">Senha</label>
-                    <input type="password" id="senha" name="senha" placeholder="Digite sua senha" required>
+                    <div class="senha-controle">
+                        <input type="password" id="senha" name="senha" placeholder="Digite sua senha" required>
+                        <button type="button" id="alternarVisibilidadeSenha" class="botao-olho" aria-label="Mostrar senha" aria-pressed="false">
+                            <i class="fa-solid fa-eye" aria-hidden="true"></i>
+                        </button>
+                    </div>
                 </div>
 
                 <button type="submit" class="botao-principal">Entrar</button>
@@ -63,6 +68,19 @@
     </div>
 
     <script>
+     const campoSenhaLogin = document.getElementById('senha');
+     const botaoOlhoSenha = document.getElementById('alternarVisibilidadeSenha');
+     const iconeOlhoSenha = botaoOlhoSenha.querySelector('i');
+
+     botaoOlhoSenha.addEventListener('click', function () {
+        const mostrarSenha = campoSenhaLogin.type === 'password';
+        campoSenhaLogin.type = mostrarSenha ? 'text' : 'password';
+        botaoOlhoSenha.setAttribute('aria-label', mostrarSenha ? 'Ocultar senha' : 'Mostrar senha');
+        botaoOlhoSenha.setAttribute('aria-pressed', String(mostrarSenha));
+        iconeOlhoSenha.classList.toggle('fa-eye', !mostrarSenha);
+        iconeOlhoSenha.classList.toggle('fa-eye-slash', mostrarSenha);
+     });
+
      document.getElementById('formLogin').addEventListener('submit', function () {
         document.getElementById('overlayCarregando').style.display = 'flex';
      });

@@ -567,3 +567,195 @@ body {
     }
 }
 
+
+
+.erro-campo,
+.feedback-senha.erro {
+    color: #f87171;
+    font-size: 12px;
+    margin-top: 6px;
+}
+
+.feedback-senha.ok {
+    color: #4ade80;
+    font-size: 12px;
+    margin-top: 6px;
+}
+
+
+.senha-controle {
+    position: relative;
+    width: 100%;
+}
+
+.senha-controle input {
+    padding-right: 48px;
+}
+
+.botao-olho {
+    position: absolute;
+    top: 50%;
+    right: 12px;
+    transform: translateY(-50%);
+    padding: 8px;
+    border: 0;
+    background: transparent;
+    color: #9fa4b4;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+.botao-olho:hover,
+.botao-olho:focus-visible {
+    color: #e2a053;
+}
+
+.botao-olho:focus-visible {
+    outline: 2px solid #e2a053;
+    outline-offset: 2px;
+    border-radius: 4px;
+}
+
+
+.confirmacao-dialog {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    margin: 0;
+    width: min(92vw, 440px);
+    max-width: 440px;
+    padding: 28px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 16px;
+    background: rgba(21, 23, 28, 0.82);
+    color: #e2e8f0;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+}
+
+.confirmacao-dialog::backdrop {
+    background: rgba(11, 12, 14, 0.72);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+}
+
+.confirmacao-dialog h2 {
+    margin: 0 0 12px;
+    color: #e2a053;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 20px;
+}
+
+.confirmacao-dialog p {
+    color: #c4c9d4;
+    font-size: 15px;
+    line-height: 1.5;
+}
+
+.confirmacao-acoes {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 24px;
+}
+
+.confirmacao-acoes .botao-principal,
+.confirmacao-acoes .botao-secundario {
+    width: auto;
+    margin-top: 0;
+}
+
+.confirmacao-acoes .botao-principal {
+    padding: 10px 22px;
+}
+
+@media (max-width: 420px) {
+    .confirmacao-dialog {
+        padding: 24px 20px;
+    }
+
+    .confirmacao-acoes {
+        flex-direction: column-reverse;
+    }
+
+    .confirmacao-acoes .botao-principal,
+    .confirmacao-acoes .botao-secundario {
+        width: 100%;
+        text-align: center;
+    }
+}
+
+
+.grupo-agendamentos {
+    width: 100%;
+    margin-top: 20px;
+    padding: 18px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 14px;
+    background: rgba(15, 17, 21, 0.48);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    text-align: left;
+}
+
+.grupo-agendamentos h2 {
+    margin-bottom: 14px;
+    color: #e2a053;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 18px;
+}
+
+.grupo-agendamentos.concluidos h2,
+.grupo-agendamentos.cancelados h2 {
+    color: #9fa4b4;
+}
+
+.grupo-agendamentos.cancelados {
+    background: rgba(15, 17, 21, 0.34);
+}
+
+.agendamento-item {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    margin-top: 12px;
+    padding: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 12px;
+    background: rgba(21, 23, 28, 0.66);
+}
+
+.grupo-agendamentos.cancelados .agendamento-item {
+    opacity: 0.82;
+}
+
+.agendamento-info {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+    color: #c4c9d4;
+    font-size: 14px;
+}
+
+.agendamento-info h3,
+.agendamento-info .servico {
+    color: #ffffff;
+    font-size: 16px;
+    font-weight: 700;
+}
+
+.agendamento-info strong {
+    color: #9fa4b4;
+}
+
+.agendamento-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.agendamento-actions .botao-secundario {
+    padding: 8px 14px;
+}

@@ -12,32 +12,38 @@
         <div class="caixa-login" style="width: 90%; max-width: 600px;">
             {% include '_navegacao.html' %}
             <h1>Meus Agendamentos</h1>
-            <p class="subtitulo">Visualize e gerencie seus agendamentos</p>
+            <p class="subtitulo">Visualize e acompanhe seus agendamentos</p>
 
-            {% if agendamentos %}
-                <div class="tabela-agendamentos">
-                    {% for agendamento in agendamentos %}
-                    <div class="agendamento-item">
-                        <div class="agendamento-info">
-                            <h3>{{ agendamento.servico.nome }}</h3>
-                            <p><strong>Profissional:</strong> {{ agendamento.profissional.nome }}</p>
-                            <p><strong>Data e Hora:</strong> {{ agendamento.data_hora|date:"d/m/Y H:i" }}</p>
-                            <p><strong>Valor:</strong> R$ {{ agendamento.servico.preco }}</p>
-                            <p><strong>Status:</strong> {{ agendamento.get_status_display }}</p>
-                        </div>
-                        {% if agendamento.status == 'AGENDADO' or agendamento.status == 'CONFIRMADO' %}
-                            <div class="agendamento-actions">
-                                <button class="botao-secundario" data-id="{{ agendamento.id }}" data-acao="cancelar">
-                                    Cancelar
-                                </button>
-                            </div>
-                        {% endif %}
-                    </div>
+            {% if agendamentos_ativos %}
+                <section class="grupo-agendamentos">
+                    <h2>Agendamentos ativos</h2>
+                    {% for agendamento in agendamentos_ativos %}
+                        {% include '_item_agendamento_cliente.html' %}
                     {% endfor %}
-                </div>
-            {% else %}
-                <p>Você não tem nenhum agendamento agendado.</p>
-                <p>Agende seu primeiro serviço clicando em "Agendar" no menu principal.</p>
+                </section>
+            {% endif %}
+
+            {% if agendamentos_concluidos %}
+                <section class="grupo-agendamentos concluidos">
+                    <h2>Concluídos</h2>
+                    {% for agendamento in agendamentos_concluidos %}
+                        {% include '_item_agendamento_cliente.html' %}
+                    {% endfor %}
+                </section>
+            {% endif %}
+
+            {% if agendamentos_cancelados %}
+                <section class="grupo-agendamentos cancelados">
+                    <h2>Cancelados</h2>
+                    {% for agendamento in agendamentos_cancelados %}
+                        {% include '_item_agendamento_cliente.html' %}
+                    {% endfor %}
+                </section>
+            {% endif %}
+
+            {% if not agendamentos_ativos and not agendamentos_concluidos and not agendamentos_cancelados %}
+                <p>Você ainda não tem agendamentos.</p>
+                <p>Agende seu primeiro serviço pelo menu principal.</p>
             {% endif %}
         </div>
     </section>

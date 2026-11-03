@@ -17,22 +17,31 @@
             <h1>Criar conta</h1>
             <p class="subtitulo">Cadastre-se na Barber Shop.</p>
 
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="mensagem mensagem-{{ message.tags }}">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+
             <form method="post" id="formCadastro">
                 {% csrf_token %}
 
                 <div class="campo">
                     <label for="nome">Nome</label>
-                    <input type="text" id="nome" name="nome" placeholder="Digite seu nome" required>
+                    <input type="text" id="nome" name="nome" value="{{ form.nome.value|default:'' }}" placeholder="Digite seu nome" required>
+                    {% for error in form.nome.errors %}<small class="erro-campo">{{ error }}</small>{% endfor %}
                 </div>
 
                 <div class="campo">
                     <label for="email">E-mail</label>
-                    <input type="email" id="email" name="email" placeholder="Digite seu e-mail" required>
+                    <input type="email" id="email" name="email" value="{{ form.email.value|default:'' }}" placeholder="Digite seu e-mail" required>
+                    {% for error in form.email.errors %}<small class="erro-campo">{{ error }}</small>{% endfor %}
                 </div>
 
                 <div class="campo">
                     <label for="telefone">Telefone</label>
-                    <input type="text" id="telefone" name="telefone" placeholder="Digite seu telefone" required>
+                    <input type="text" id="telefone" name="telefone" value="{{ form.telefone.value|default:'' }}" placeholder="Digite seu telefone" required>
+                    {% for error in form.telefone.errors %}<small class="erro-campo">{{ error }}</small>{% endfor %}
                 </div>
 
                 <div class="campo">
@@ -41,11 +50,18 @@
                 </div>
 
                 <div class="campo">
+                    <label for="senha_confirmacao">Confirmar Senha</label>
+                    <input type="password" id="senha_confirmacao" name="senha_confirmacao" placeholder="Digite novamente sua senha" aria-describedby="senhaFeedback" aria-invalid="false" required>
+                    {% for error in form.senha_confirmacao.errors %}<small class="erro-campo">{{ error }}</small>{% endfor %}
+                    <small id="senhaFeedback" class="feedback-senha" aria-live="polite" role="status"></small>
+                </div>
+
+                <div class="campo">
                     <label for="tipo">Tipo de conta</label>
                     <select id="tipo" name="tipo" required>
                         <option value="">Selecione o tipo de conta</option>
-                        <option value="cliente">Cliente</option>
-                        <option value="profissional">Profissional</option>
+                        <option value="cliente" {% if form.tipo.value == "cliente" %}selected{% endif %}>Cliente</option>
+                        <option value="profissional" {% if form.tipo.value == "profissional" %}selected{% endif %}>Profissional</option>
                     </select>
                 </div>
 
@@ -68,7 +84,47 @@
     </div>
 
     <script>
-     document.getElementById('formCadastro').addEventListener('submit', function () {
+     const formCadastro = document.getElementById('formCadastro');
+     const campoSenha = document.getElementById('senha');
+     const campoConfirmacao = document.getElementById('senha_confirmacao');
+     const feedbackSenha = document.getElementById('senhaFeedback');
+
+     function validarConfirmacao(mostrarIncompleta = false) {
+        const senha = campoSenha.value;
+        const confirmacao = campoConfirmacao.value;
+        const divergente = confirmacao && (
+            !senha.startsWith(confirmacao) ||
+            (mostrarIncompleta && senha !== confirmacao)
+        );
+
+        campoConfirmacao.setAttribute('aria-invalid', divergente ? 'true' : 'false');
+        feedbackSenha.className = 'feedback-senha';
+
+        if (divergente) {
+            feedbackSenha.textContent = 'As senhas n\u00e3o coincidem.';
+            feedbackSenha.classList.add('erro');
+            return false;
+        }
+
+        if (confirmacao && senha === confirmacao) {
+            feedbackSenha.textContent = 'As senhas coincidem.';
+            feedbackSenha.classList.add('ok');
+            return true;
+        }
+
+        feedbackSenha.textContent = '';
+        return !mostrarIncompleta;
+     }
+
+     campoSenha.addEventListener('input', () => validarConfirmacao());
+     campoConfirmacao.addEventListener('input', () => validarConfirmacao());
+
+     formCadastro.addEventListener('submit', function (event) {
+        if (!validarConfirmacao(true)) {
+            event.preventDefault();
+            campoConfirmacao.focus();
+            return;
+        }
         document.getElementById('overlayCarregando').style.display = 'flex';
      });
     </script>

@@ -24,6 +24,10 @@ class Servico(models.Model):
 
 
 class Agendamento(models.Model):
+    class CanceladoPor(models.TextChoices):
+        CLIENTE = 'CLIENTE', 'Cliente'
+        PROFISSIONAL = 'PROFISSIONAL', 'Profissional'
+
     class Status(models.TextChoices):
         AGENDADO = 'AGENDADO', 'Agendado'
         CONFIRMADO = 'CONFIRMADO', 'Confirmado'
@@ -39,4 +43,10 @@ class Agendamento(models.Model):
         max_length=12,
         choices=Status.choices,
         default=Status.AGENDADO,
+    )
+    cancelado_por = models.CharField(
+        max_length=13,
+        choices=CanceladoPor.choices,
+        blank=True,
+        default='',
     )

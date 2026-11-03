@@ -1,0 +1,19 @@
+<div class="agendamento-item">
+    <div class="agendamento-info">
+        <h3>{{ agendamento.servico.nome }}</h3>
+        <p><strong>Profissional:</strong> {{ agendamento.profissional.nome }}</p>
+        <p><strong>Data e hora:</strong> {{ agendamento.data_hora|date:"d/m/Y H:i" }}</p>
+        <p><strong>Valor:</strong> R$ {{ agendamento.servico.preco }}</p>
+        <p><strong>Status:</strong> {{ agendamento.get_status_display }}</p>
+        {% if agendamento.status == 'CANCELADO' %}
+            <p><strong>Cancelado por:</strong> {{ agendamento.get_cancelado_por_display|default:"Não registrado" }}</p>
+        {% endif %}
+    </div>
+    {% if agendamento.status == 'AGENDADO' or agendamento.status == 'CONFIRMADO' %}
+        <div class="agendamento-actions">
+            <button class="botao-secundario" data-id="{{ agendamento.id }}" data-acao="cancelar">
+                Cancelar
+            </button>
+        </div>
+    {% endif %}
+</div>

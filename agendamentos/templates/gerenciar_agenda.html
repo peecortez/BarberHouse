@@ -18,6 +18,7 @@
                 <div class="campo">
                     <label>Status da Agenda</label>
                     <div class="toggle-agenda">
+                        {% csrf_token %}
                         <button id="btnToggleAgenda" class="botao-principal">
                             {{ profissional.agenda_aberta|yesno:"Fechar Agenda,Abrir Agenda" }}
                         </button>
@@ -28,36 +29,34 @@
                 </div>
             </div>
 
-            {% if agendamentos %}
-                <div class="agendamentos-list">
-                    <h3>Próximos Agendamentos</h3>
-                    {% for agendamento in agendamentos %}
-                        <div class="agendamento-item">
-                            <div class="agendamento-info">
-                                <span class="servico">{{ agendamento.servico.nome }}</span>
-                                <span class="cliente">{{ agendamento.cliente.nome }}</span>
-                                <span class="data-hora">{{ agendamento.data_hora|date:"d/m/Y H:i" }}</span>
-                                <span class="status">{{ agendamento.get_status_display }}</span>
-                            </div>
-                            {% if agendamento.status == 'AGENDADO' or agendamento.status == 'CONFIRMADO' %}
-                                <div class="agendamento-actions">
-                                    {% if agendamento.status == 'AGENDADO' %}
-                                        <button class="botao-secundario" data-id="{{ agendamento.id }}" data-acao="confirmar">
-                                            Confirmar
-                                        </button>
-                                    {% endif %}
-                                    <button class="botao-secundario" data-id="{{ agendamento.id }}" data-acao="concluir">
-                                        Concluir
-                                    </button>
-                                    <button class="botao-secundario" data-id="{{ agendamento.id }}" data-acao="cancelar">
-                                        Cancelar
-                                    </button>
-                                </div>
-                            {% endif %}
-                        </div>
+            {% if agendamentos_ativos %}
+                <section class="grupo-agendamentos">
+                    <h2>Agendamentos ativos</h2>
+                    {% for agendamento in agendamentos_ativos %}
+                        {% include '_item_agendamento_profissional.html' %}
                     {% endfor %}
-                </div>
-            {% else %}
+                </section>
+            {% endif %}
+
+            {% if agendamentos_concluidos %}
+                <section class="grupo-agendamentos concluidos">
+                    <h2>Concluídos</h2>
+                    {% for agendamento in agendamentos_concluidos %}
+                        {% include '_item_agendamento_profissional.html' %}
+                    {% endfor %}
+                </section>
+            {% endif %}
+
+            {% if agendamentos_cancelados %}
+                <section class="grupo-agendamentos cancelados">
+                    <h2>Cancelados</h2>
+                    {% for agendamento in agendamentos_cancelados %}
+                        {% include '_item_agendamento_profissional.html' %}
+                    {% endfor %}
+                </section>
+            {% endif %}
+
+            {% if not agendamentos_ativos and not agendamentos_concluidos and not agendamentos_cancelados %}
                 <p>Nenhum agendamento encontrado.</p>
             {% endif %}
         </div>
