@@ -7,6 +7,22 @@ class Cliente(models.Model):
     nome = models.CharField(max_length=100)
     email = models.EmailField(unique=True)
     telefone = models.CharField(max_length=15)
+    cpf = models.CharField(max_length=11, unique=True, null=True, blank=True)
+    cupom_resgatado_em = models.DateTimeField(null=True, blank=True)
+
+    @property
+    def cupom_resgatado(self):
+        return self.cupom_resgatado_em is not None
+
+    @property
+    def cupom_disponivel(self):
+        return bool(self.cpf) and not self.cupom_resgatado
+
+    @property
+    def codigo_promocao(self):
+        if not self.cpf:
+            return None
+        return f"BARBER15OFF{self.cpf[-3:]}"
 
 
 class Profissional(models.Model):
@@ -14,6 +30,7 @@ class Profissional(models.Model):
     nome = models.CharField(max_length=100)
     email = models.EmailField(unique=True)
     telefone = models.CharField(max_length=15)
+    cpf = models.CharField(max_length=11, unique=True, null=True, blank=True)
     agenda_aberta = models.BooleanField(default=True)
 
 
@@ -44,6 +61,7 @@ class Agendamento(models.Model):
         choices=Status.choices,
         default=Status.AGENDADO,
     )
+    cupom_aplicado = models.BooleanField(default=False)
     cancelado_por = models.CharField(
         max_length=13,
         choices=CanceladoPor.choices,

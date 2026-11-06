@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 </head>
 <body>
+    {% include '_toasts.html' %}
     <section class="tela">
         <div class="caixa-login" style="width: 90%; max-width: 500px;">
             {% include '_navegacao.html' %}
@@ -16,5 +17,6 @@
             <p>Em breve teremos mais funcionalidades disponíveis nesta seção.</p>
         </div>
     </section>
+    <script src="{% static_v 'agendamentos/menu.js' %}"></script>
 </body>
 </html>

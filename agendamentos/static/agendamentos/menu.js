@@ -1,5 +1,5 @@
 
-function confirmarAcao(mensagem) {
+function abrirDialogo(mensagem, opcoes = {}) {
     return new Promise(resolve => {
         const dialog = document.createElement("dialog");
         dialog.className = "confirmacao-dialog";
@@ -8,11 +8,21 @@ function confirmarAcao(mensagem) {
 
         const titulo = document.createElement("h2");
         titulo.id = "tituloConfirmacao";
-        titulo.textContent = "Estamos quase l\u00e1";
+        titulo.textContent = opcoes.titulo || "Estamos quase l\u00e1";
 
         const texto = document.createElement("p");
         texto.id = "mensagemConfirmacao";
         texto.textContent = mensagem;
+
+        let caixa = null;
+        let rotulo = null;
+        if (opcoes.rotuloCheckbox) {
+            rotulo = document.createElement("label");
+            rotulo.className = "confirmacao-opcao";
+            caixa = document.createElement("input");
+            caixa.type = "checkbox";
+            rotulo.append(caixa, document.createTextNode(" " + opcoes.rotuloCheckbox));
+        }
 
         const botoes = document.createElement("div");
         botoes.className = "confirmacao-acoes";
@@ -26,25 +36,32 @@ function confirmarAcao(mensagem) {
         const confirmar = document.createElement("button");
         confirmar.type = "button";
         confirmar.className = "botao-principal";
-        confirmar.textContent = "Confirmar";
+        confirmar.textContent = opcoes.textoConfirmar || "Confirmar";
         confirmar.addEventListener("click", () => dialog.close("confirm"));
 
         botoes.append(voltar, confirmar);
-        dialog.append(titulo, texto, botoes);
+        dialog.append(titulo, texto);
+        if (rotulo) dialog.append(rotulo);
+        dialog.append(botoes);
         dialog.addEventListener("cancel", event => {
             event.preventDefault();
             dialog.close("cancel");
         });
         dialog.addEventListener("close", () => {
             const aceito = dialog.returnValue === "confirm";
+            const marcado = caixa ? caixa.checked : false;
             dialog.remove();
-            resolve(aceito);
+            resolve({ aceito, marcado });
         });
 
         document.body.appendChild(dialog);
         dialog.showModal();
         voltar.focus();
     });
+}
+
+function confirmarAcao(mensagem) {
+    return abrirDialogo(mensagem).then(resultado => resultado.aceito);
 }
 
 // Helper function to get cookie value by name
@@ -259,6 +276,20 @@ document.addEventListener('DOMContentLoaded', function () {
             if (!aceito) return;
         }
 
+        let cupom = false;
+        if (acao === 'concluir') {
+            const opcoes = {
+                titulo: 'Concluir atendimento',
+                textoConfirmar: 'Concluir',
+            };
+            if (button.hasAttribute('data-cupom-disponivel')) {
+                opcoes.rotuloCheckbox = 'O cliente aplicou o cupom de 15% de desconto';
+            }
+            const resultado = await abrirDialogo('Confirmar que este atendimento foi conclu\u00eddo?', opcoes);
+            if (!resultado.aceito) return;
+            cupom = resultado.marcado;
+        }
+
         // Disable button to prevent double clicks
         button.disabled = true;
 
@@ -268,7 +299,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 'Content-Type': 'application/json',
                 'X-CSRFToken': getCookie('csrftoken')
             },
-            body: JSON.stringify({ acao: acao })
+            body: JSON.stringify({ acao: acao, cupom: cupom })
         })
         .then(response => response.json())
         .then(data => {
@@ -287,6 +318,18 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 
+});
+
+// Toasts: ficam visíveis por 7s e depois saem com animação
+const TOAST_DURACAO_MS = 7000;
+
+document.querySelectorAll('.toast').forEach(function (toast) {
+    setTimeout(function () {
+        toast.classList.add('saindo');
+        toast.addEventListener('animationend', function () {
+            toast.remove();
+        }, { once: true });
+    }, TOAST_DURACAO_MS);
 });
 
 // Helper function to show messages (used in status update)

@@ -759,3 +759,236 @@ body {
 .agendamento-actions .botao-secundario {
     padding: 8px 14px;
 }
+
+
+/* Toast de notificação (canto superior direito) */
+.toast-area {
+    position: fixed;
+    top: 24px;
+    right: 24px;
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    pointer-events: none;
+}
+
+.toast {
+    --toast-duracao: 7s;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 280px;
+    max-width: min(380px, calc(100vw - 32px));
+    padding: 16px 20px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-left: 3px solid #e2a053;
+    border-radius: 14px;
+    background: rgba(21, 23, 28, 0.72);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    box-shadow: 0 20px 40px -12px rgba(0, 0, 0, 0.6);
+    color: #e2e8f0;
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    pointer-events: auto;
+    animation: toast-entrada 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.toast-icone {
+    font-size: 20px;
+    color: #4ade80;
+    flex-shrink: 0;
+}
+
+.toast-error .toast-icone {
+    color: #f87171;
+}
+
+.toast-texto {
+    line-height: 1.4;
+}
+
+.toast-progresso {
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    height: 2px;
+    width: 100%;
+    background: #e2a053;
+    opacity: 0.7;
+    transform-origin: left;
+    animation: toast-progresso var(--toast-duracao) linear forwards;
+}
+
+.toast.saindo {
+    animation: toast-saida 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+@keyframes toast-entrada {
+    from { opacity: 0; transform: translateX(40px) scale(0.96); filter: blur(4px); }
+    to   { opacity: 1; transform: translateX(0) scale(1); filter: blur(0); }
+}
+
+@keyframes toast-saida {
+    from { opacity: 1; transform: translateX(0) scale(1); filter: blur(0); }
+    to   { opacity: 0; transform: translateX(40px) scale(0.96); filter: blur(4px); }
+}
+
+@keyframes toast-progresso {
+    from { transform: scaleX(1); }
+    to   { transform: scaleX(0); }
+}
+
+@media (max-width: 480px) {
+    .toast-area {
+        top: 16px;
+        right: 16px;
+        left: 16px;
+    }
+
+    .toast {
+        min-width: 0;
+        max-width: none;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .toast,
+    .toast.saindo {
+        animation-duration: 0.01s;
+    }
+}
+
+
+/* Notícias / promoção */
+.noticia {
+    margin-top: 8px;
+    padding: 22px 20px;
+    text-align: left;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(226, 160, 83, 0.35);
+    border-radius: 12px;
+}
+
+.noticia-selo {
+    display: inline-block;
+    margin-bottom: 10px;
+    padding: 3px 10px;
+    border-radius: 999px;
+    background: #e2a053;
+    color: #0b0c0e;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.noticia h2 {
+    margin-bottom: 8px;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 20px;
+    color: #ffffff;
+}
+
+.noticia p {
+    color: #c3c8d6;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.noticia-rotulo {
+    margin-top: 16px;
+    font-size: 12px !important;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #9fa4b4 !important;
+}
+
+.noticia-codigo {
+    margin-top: 6px;
+    padding: 14px;
+    text-align: center;
+    border: 2px dashed #e2a053;
+    border-radius: 10px;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 22px;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    color: #e2a053;
+    user-select: all;
+}
+
+.noticia-aviso {
+    margin-top: 16px;
+    padding: 12px;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.botao-cupom {
+    margin-top: 16px;
+}
+
+.area-cupom.cupom-revelado {
+    animation: cupom-aparece 0.35s ease;
+}
+
+.botao-copiar {
+    width: 100%;
+    margin-top: 10px;
+    padding: 10px;
+    border: 1px solid rgba(226, 160, 83, 0.5);
+    border-radius: 10px;
+    background: transparent;
+    color: #e2a053;
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+.botao-copiar:hover {
+    background: rgba(226, 160, 83, 0.12);
+}
+
+@keyframes cupom-aparece {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .area-cupom.cupom-revelado { animation: none; }
+}
+
+.confirmacao-opcao {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0 0 18px;
+    text-align: left;
+    font-size: 14px;
+    color: #e2e8f0;
+    cursor: pointer;
+}
+
+.confirmacao-opcao input {
+    width: 18px;
+    height: 18px;
+    accent-color: #e2a053;
+}
+
+.cupom-aplicado {
+    color: #e2a053;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.botao-cupom:disabled {
+    opacity: 0.7;
+    cursor: default;
+}

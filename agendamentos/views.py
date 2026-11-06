@@ -2,6 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.db import IntegrityError, transaction
 from django.contrib.auth.models import User
 from django.contrib.auth import login
+from django.contrib.auth.views import LogoutView
 from django.contrib.auth import authenticate
 from django.contrib.auth.decorators import login_required
 from .forms import CadastroForm, AgendamentoForm
@@ -44,10 +45,11 @@ def cadastro(request):
                         usuario=usuario,
                         nome=dados["nome"],
                         email=dados["email"],
-                        telefone=dados["telefone"]
+                        telefone=dados["telefone"],
+                        cpf=dados["cpf"],
                     )
             except IntegrityError:
-                form.add_error("email", "Este e-mail ja esta cadastrado. Entre ou use outro.")
+                form.add_error(None, "E-mail ou CPF já cadastrado. Entre ou use outros dados.")
             else:
                 messages.success(request, "Conta criada com sucesso! Faca login para continuar.")
                 return redirect("login")
@@ -151,13 +153,13 @@ def agendar_servico(request):
         data_str = request.POST.get("data")
         horario_str = request.POST.get("horario")
         if not all([servico_id, profissional_id, data_str, horario_str]):
-            messages.error(request, "Campos obrigat?rios faltando.")
+            messages.error(request, "Campos obrigat\u00f3rios faltando.")
             return redirect("agenda_cliente")
         data_hora_str = f"{data_str}T{horario_str}"
     if not all([servico_id, profissional_id, data_hora_str]):
         if is_json:
             return JsonResponse({"error": "Missing required fields"}, status=400)
-        messages.error(request, "Campos obrigat?rios faltando.")
+        messages.error(request, "Campos obrigat\u00f3rios faltando.")
         return redirect("agenda_cliente")
     try:
         servico = Servico.objects.get(id=servico_id)
@@ -166,7 +168,7 @@ def agendar_servico(request):
     except (Servico.DoesNotExist, Profissional.DoesNotExist, ValueError, TypeError):
         if is_json:
             return JsonResponse({"error": "Invalid data"}, status=400)
-        messages.error(request, "Dados inv?lidos.")
+        messages.error(request, "Dados inv\u00e1lidos.")
         return redirect("agenda_cliente")
     abertura = timezone.make_aware(datetime.combine(data_hora.date(), time(8, 0)))
     fechamento = timezone.make_aware(datetime.combine(data_hora.date(), time(18, 0)))
@@ -181,12 +183,12 @@ def agendar_servico(request):
     ):
         if is_json:
             return JsonResponse({"error": "Invalid or unavailable time"}, status=400)
-        messages.error(request, "Hor?rio inv?lido ou agenda fechada.")
+        messages.error(request, "Hor\u00e1rio inv\u00e1lido ou agenda fechada.")
         return redirect("agenda_cliente")
     if _tem_conflito(profissional, servico, data_hora):
         if is_json:
             return JsonResponse({"error": "Time slot no longer available"}, status=409)
-        messages.error(request, "Hor?rio n?o dispon?vel.")
+        messages.error(request, "Hor\u00e1rio n\u00e3o dispon\u00edvel.")
         return redirect("agenda_cliente")
     agendamento = Agendamento.objects.create(
         cliente=request.user.cliente,
@@ -200,7 +202,7 @@ def agendar_servico(request):
             "message": "Agendamento realizado com sucesso!",
             "agendamento_id": agendamento.id
         })
-    messages.success(request, "Agendamento realizado com sucesso!")
+    messages.success(request, "Agendamento realizado com sucesso")
     return redirect("meus_agendamentos")
 
 @login_required
@@ -234,7 +236,7 @@ def meus_agendamentos(request):
 def gerenciar_agenda(request):
     """View for professionals to manage their schedule"""
     if not hasattr(request.user, 'profissional'):
-        messages.error(request, 'Access denied. This area is for professionals only.')
+        messages.error(request, "Acesso negado. Esta \u00e1rea \u00e9 apenas para profissionais.")
         return redirect('home')
 
     profissional = request.user.profissional
@@ -284,7 +286,8 @@ def atualizar_status(request, agendamento_id):
     try:
         data = json.loads(request.body)
         acao = data.get('acao')
-    except json.JSONDecodeError:
+        aplicar_cupom = data.get('cupom') is True
+    except (json.JSONDecodeError, AttributeError):
         return JsonResponse({'error': 'Invalid JSON'}, status=400)
 
     if acao not in ['confirmar', 'concluir', 'cancelar']:
@@ -332,6 +335,9 @@ def atualizar_status(request, agendamento_id):
                  (is_cliente and agendamento.cliente == user.cliente) ):
             return JsonResponse({'error': 'Permission denied'}, status=403)
 
+    if aplicar_cupom and acao != 'concluir':
+        return JsonResponse({'error': 'Invalid action'}, status=400)
+
     agendamento.status = new_status
     if acao == 'cancelar':
         agendamento.cancelado_por = (
@@ -339,7 +345,17 @@ def atualizar_status(request, agendamento_id):
             if is_profissional
             else Agendamento.CanceladoPor.CLIENTE
         )
-    agendamento.save()
+    with transaction.atomic():
+        if aplicar_cupom:
+            resgatado = Cliente.objects.filter(
+                pk=agendamento.cliente_id,
+                cpf__isnull=False,
+                cupom_resgatado_em__isnull=True,
+            ).update(cupom_resgatado_em=timezone.now())
+            if not resgatado:
+                return JsonResponse({'error': 'Cupom j\u00e1 resgatado'}, status=409)
+            agendamento.cupom_aplicado = True
+        agendamento.save()
 
     return JsonResponse({
         'success': True,
@@ -349,10 +365,19 @@ def atualizar_status(request, agendamento_id):
 
 
 def noticias(request):
-    """Placeholder view for news page"""
-    return render(request, 'noticias.html')
+    cliente = None
+    if request.user.is_authenticated:
+        cliente = Cliente.objects.filter(usuario=request.user).first()
+    return render(request, 'noticias.html', {'cliente': cliente})
 
 
 def mais(request):
     """Placeholder view for more options page"""
     return render(request, 'mais.html')
+
+class LogoutLimpandoMensagens(LogoutView):
+    """Descarta mensagens pendentes para que n\u00e3o apare\u00e7am na tela de login."""
+
+    def post(self, request, *args, **kwargs):
+        list(messages.get_messages(request))
+        return super().post(request, *args, **kwargs)

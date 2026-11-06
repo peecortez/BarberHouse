@@ -1,0 +1,11 @@
+{% if messages %}
+    <div class="toast-area" aria-live="polite">
+        {% for message in messages %}
+            <div class="toast toast-{{ message.tags }}" role="status">
+                <i class="fa-solid {% if message.tags == 'success' %}fa-circle-check{% else %}fa-circle-exclamation{% endif %} toast-icone" aria-hidden="true"></i>
+                <span class="toast-texto">{{ message }}</span>
+                <span class="toast-progresso" aria-hidden="true"></span>
+            </div>
+        {% endfor %}
+    </div>
+{% endif %}

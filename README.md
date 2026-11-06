@@ -4,14 +4,16 @@ Sistema web para gerenciamento de uma barbearia, desenvolvido com Django. Client
 
 ## Funcionalidades
 
-- Cadastro e login de clientes e profissionais.
+- Cadastro e login de clientes e profissionais, com CPF validado (dígitos verificadores e unicidade), previsto para validação de cupons e promoções.
 - Cadastro de serviços pelo painel administrativo do Django.
 - Consulta de horários disponíveis por serviço, profissional e data.
 - Criação e acompanhamento de agendamentos.
+- Notificação no canto superior direito confirmando o agendamento, exibida por 7 segundos.
 - Visualização separada de agendamentos ativos, concluídos e cancelados.
 - Identificação de quem cancelou cada agendamento.
 - Confirmação, conclusão e cancelamento de atendimentos, conforme o perfil do usuário.
 - Abertura e fechamento da agenda do profissional.
+- Notícia de promoção com código de 15% de desconto (`BARBER15OFF` + 3 últimos dígitos do CPF), um por CPF, exibido ao cliente logado. O profissional valida o uso ao concluir o atendimento; depois disso o cliente vê "Cupom já resgatado".
 - Painel administrativo para gerenciar os dados do sistema.
 
 ## Tecnologias

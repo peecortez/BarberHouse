@@ -4,6 +4,9 @@
         <span class="cliente">{{ agendamento.cliente.nome }}</span>
         <span class="data-hora">{{ agendamento.data_hora|date:"d/m/Y H:i" }}</span>
         <span class="status">{{ agendamento.get_status_display }}</span>
+        {% if agendamento.cupom_aplicado %}
+            <span class="cupom-aplicado"><i class="fa-solid fa-ticket"></i> Cupom de 15% aplicado</span>
+        {% endif %}
         {% if agendamento.status == 'CANCELADO' %}
             <span class="cancelado-por">Cancelado por: {{ agendamento.get_cancelado_por_display|default:"Não registrado" }}</span>
         {% endif %}
@@ -13,7 +16,7 @@
             {% if agendamento.status == 'AGENDADO' %}
                 <button class="botao-secundario" data-id="{{ agendamento.id }}" data-acao="confirmar">Confirmar</button>
             {% endif %}
-            <button class="botao-secundario" data-id="{{ agendamento.id }}" data-acao="concluir">Concluir</button>
+            <button class="botao-secundario" data-id="{{ agendamento.id }}" data-acao="concluir"{% if agendamento.cliente.cupom_disponivel %} data-cupom-disponivel="1"{% endif %}>Concluir</button>
             <button class="botao-secundario" data-id="{{ agendamento.id }}" data-acao="cancelar">Cancelar</button>
         </div>
     {% endif %}

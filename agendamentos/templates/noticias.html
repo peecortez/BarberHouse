@@ -8,13 +8,70 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 </head>
 <body>
+    {% include '_toasts.html' %}
     <section class="tela">
         <div class="caixa-login" style="width: 90%; max-width: 500px;">
             {% include '_navegacao.html' %}
             <h1>Notícias</h1>
             <p class="subtitulo">Últimas notícias da barbearia</p>
-            <p>Em breve teremos notícias e promoções especiais para você!</p>
+
+            <article class="noticia">
+                <span class="noticia-selo">Promoção</span>
+                <h2>15% de desconto na sua conta</h2>
+                <p>Apresente o seu código na hora do pagamento e ganhe 15% de desconto. Cada CPF tem direito a um único código.</p>
+
+                {% if cliente and cliente.cupom_resgatado %}
+                    <button type="button" class="botao-principal botao-cupom" disabled>
+                        <i class="fa-solid fa-circle-check"></i> Cupom já resgatado
+                    </button>
+                {% elif cliente and cliente.codigo_promocao %}
+                    <button type="button" class="botao-principal botao-cupom" id="botaoCupom" aria-expanded="false" aria-controls="areaCupom">
+                        <i class="fa-solid fa-ticket"></i> Pegue seu cupom aqui
+                    </button>
+
+                    <div id="areaCupom" class="area-cupom escondida" role="status" aria-live="polite">
+                        <p class="noticia-rotulo">Seu código</p>
+                        <div class="noticia-codigo" id="codigoCupom">{{ cliente.codigo_promocao }}</div>
+                        <button type="button" class="botao-copiar" id="botaoCopiar">
+                            <i class="fa-regular fa-copy"></i> <span>Copiar código</span>
+                        </button>
+                    </div>
+                {% elif cliente %}
+                    <p class="noticia-aviso">Sua conta ainda não tem CPF cadastrado. Entre em contato com a barbearia para liberar o seu código.</p>
+                {% elif user.is_authenticated %}
+                    <p class="noticia-aviso">A promoção é exclusiva para contas de cliente.</p>
+                {% else %}
+                    <p class="noticia-aviso">Entre na sua conta de cliente para ver o seu código.</p>
+                {% endif %}
+            </article>
         </div>
     </section>
+
+    <script>
+     const botaoCupom = document.getElementById('botaoCupom');
+     if (botaoCupom) {
+        const areaCupom = document.getElementById('areaCupom');
+        const botaoCopiar = document.getElementById('botaoCopiar');
+
+        botaoCupom.addEventListener('click', () => {
+            areaCupom.classList.remove('escondida');
+            areaCupom.classList.add('cupom-revelado');
+            botaoCupom.classList.add('escondida');
+            botaoCupom.setAttribute('aria-expanded', 'true');
+        });
+
+        botaoCopiar.addEventListener('click', async () => {
+            const rotulo = botaoCopiar.querySelector('span');
+            try {
+                await navigator.clipboard.writeText(document.getElementById('codigoCupom').textContent.trim());
+                rotulo.textContent = 'Código copiado!';
+            } catch (e) {
+                rotulo.textContent = 'Selecione e copie o código acima';
+            }
+            setTimeout(() => { rotulo.textContent = 'Copiar código'; }, 2500);
+        });
+     }
+    </script>
+    <script src="{% static_v 'agendamentos/menu.js' %}"></script>
 </body>
 </html>

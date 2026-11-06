@@ -1,7 +1,20 @@
+import re
+
 from django import forms
 from django.core.exceptions import ValidationError
 from django.contrib.auth.models import User
 from .models import Cliente, Profissional, Servico, Agendamento
+
+def cpf_valido(cpf):
+    if len(cpf) != 11 or cpf == cpf[0] * 11:
+        return False
+    for tamanho in (9, 10):
+        soma = sum(int(cpf[i]) * (tamanho + 1 - i) for i in range(tamanho))
+        digito = (soma * 10 % 11) % 10
+        if digito != int(cpf[tamanho]):
+            return False
+    return True
+
 
 class CadastroForm(forms.Form):
     TIPO_CHOICES = [
@@ -13,6 +26,7 @@ class CadastroForm(forms.Form):
     nome = forms.CharField(max_length=100, label='Nome')
     email = forms.EmailField(label='E-mail')
     telefone = forms.CharField(max_length=15, label='Telefone')
+    cpf = forms.CharField(max_length=14, label='CPF')
     senha = forms.CharField(widget=forms.PasswordInput, label='Senha')
     senha_confirmacao = forms.CharField(
         widget=forms.PasswordInput,
@@ -29,6 +43,17 @@ class CadastroForm(forms.Form):
                 "As senhas n\u00e3o coincidem.",
             )
         return dados
+
+    def clean_cpf(self):
+        cpf = re.sub(r"\D", "", self.cleaned_data["cpf"])
+        if not cpf_valido(cpf):
+            raise ValidationError("CPF inválido.")
+        if (
+            Cliente.objects.filter(cpf=cpf).exists()
+            or Profissional.objects.filter(cpf=cpf).exists()
+        ):
+            raise ValidationError("Este CPF já está cadastrado.")
+        return cpf
 
     def clean_email(self):
         email = self.cleaned_data["email"].strip().lower()

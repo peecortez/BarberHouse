@@ -5,15 +5,15 @@ from .models import Agendamento, Cliente, Profissional, Servico
 
 @admin.register(Cliente)
 class ClienteAdmin(admin.ModelAdmin):
-    list_display = ("nome", "email", "telefone", "usuario")
-    search_fields = ("nome", "email")
+    list_display = ("nome", "email", "telefone", "cpf", "usuario")
+    search_fields = ("nome", "email", "cpf")
 
 
 @admin.register(Profissional)
 class ProfissionalAdmin(admin.ModelAdmin):
-    list_display = ("nome", "email", "telefone", "agenda_aberta")
+    list_display = ("nome", "email", "telefone", "cpf", "agenda_aberta")
     list_filter = ("agenda_aberta",)
-    search_fields = ("nome", "email")
+    search_fields = ("nome", "email", "cpf")
 
 
 @admin.register(Servico)

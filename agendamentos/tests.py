@@ -214,3 +214,136 @@ class VersaoDoStaticTest(BaseComPerfis):
         for arquivo in TEMPLATES.glob("*.html"):
             texto = arquivo.read_text(encoding="utf-8")
             self.assertIsNone(re.search(r"static '[^']+\.(js|css)' %\}\?v=", texto), arquivo.name)
+
+class CadastroCpfTests(TestCase):
+    def dados(self, **extra):
+        base = {
+            "tipo": "cliente", "nome": "Novo", "email": "novo@x.com",
+            "telefone": "11999999999", "cpf": "529.982.247-25",
+            "senha": "Senha123!", "senha_confirmacao": "Senha123!",
+        }
+        base.update(extra)
+        return base
+
+    def test_cadastro_salva_cpf_somente_digitos(self):
+        resp = self.client.post("/cadastro/", self.dados())
+        self.assertEqual(resp.status_code, 302)
+        self.assertEqual(Cliente.objects.get().cpf, "52998224725")
+
+    def test_cpf_invalido_e_recusado(self):
+        for cpf in ("111.111.111-11", "529.982.247-24", "123"):
+            resp = self.client.post("/cadastro/", self.dados(cpf=cpf))
+            self.assertEqual(resp.status_code, 200)
+            self.assertIn("cpf", resp.context["form"].errors)
+        self.assertEqual(Cliente.objects.count(), 0)
+
+    def test_cpf_duplicado_e_recusado(self):
+        self.client.post("/cadastro/", self.dados())
+        resp = self.client.post(
+            "/cadastro/", self.dados(email="outro@x.com", tipo="profissional")
+        )
+        self.assertEqual(resp.status_code, 200)
+        self.assertIn("cpf", resp.context["form"].errors)
+        self.assertEqual(Profissional.objects.count(), 0)
+
+
+class PromocaoNoticiasTests(TestCase):
+    def test_cliente_ve_codigo_com_ultimos_3_digitos_do_cpf(self):
+        u = User.objects.create_user("c@x.com", "c@x.com", "senha123")
+        Cliente.objects.create(usuario=u, nome="C", email="c@x.com", telefone="1", cpf="52998224725")
+        self.client.login(username="c@x.com", password="senha123")
+        resp = self.client.get(reverse("noticias"))
+        self.assertContains(resp, "BARBER15OFF725")
+        self.assertNotContains(resp, "52998224725")
+
+    def test_anonimo_nao_ve_codigo(self):
+        resp = self.client.get(reverse("noticias"))
+        self.assertNotContains(resp, "BARBER15OFF")
+        self.assertContains(resp, "15%")
+
+
+class ResgateCupomTests(TestCase):
+    def setUp(self):
+        u = User.objects.create_user("c@x.com", "c@x.com", "senha123")
+        self.cliente = Cliente.objects.create(usuario=u, nome="C", email="c@x.com", telefone="1", cpf="52998224725")
+        p = User.objects.create_user("p@x.com", "p@x.com", "senha123")
+        self.prof = Profissional.objects.create(usuario=p, nome="P", email="p@x.com", telefone="2")
+        self.servico = Servico.objects.create(nome="Corte", duracao_minutos=30, preco=40)
+
+    def agendamento(self):
+        return Agendamento.objects.create(
+            cliente=self.cliente, profissional=self.prof, servico=self.servico,
+            data_hora=timezone.now() + timedelta(days=1),
+        )
+
+    def concluir(self, ag, **extra):
+        self.client.login(username="p@x.com", password="senha123")
+        return self.client.post(
+            reverse("atualizar_status", args=[ag.id]),
+            data=json.dumps({"acao": "concluir", **extra}),
+            content_type="application/json",
+        )
+
+    def test_concluir_com_cupom_resgata_e_bloqueia_reuso(self):
+        ag = self.agendamento()
+        self.assertEqual(self.concluir(ag, cupom=True).status_code, 200)
+        self.cliente.refresh_from_db()
+        ag.refresh_from_db()
+        self.assertTrue(self.cliente.cupom_resgatado)
+        self.assertTrue(ag.cupom_aplicado)
+        self.assertEqual(ag.status, Agendamento.Status.CONCLUIDO)
+
+        ag2 = self.agendamento()
+        resp = self.concluir(ag2, cupom=True)
+        self.assertEqual(resp.status_code, 409)
+        ag2.refresh_from_db()
+        self.assertEqual(ag2.status, Agendamento.Status.AGENDADO)
+        self.assertFalse(ag2.cupom_aplicado)
+
+    def test_concluir_sem_cupom_nao_resgata(self):
+        ag = self.agendamento()
+        self.assertEqual(self.concluir(ag).status_code, 200)
+        self.cliente.refresh_from_db()
+        self.assertFalse(self.cliente.cupom_resgatado)
+
+    def test_cliente_nao_pode_resgatar_o_proprio_cupom(self):
+        ag = self.agendamento()
+        self.client.login(username="c@x.com", password="senha123")
+        resp = self.client.post(
+            reverse("atualizar_status", args=[ag.id]),
+            data=json.dumps({"acao": "concluir", "cupom": True}),
+            content_type="application/json",
+        )
+        self.assertEqual(resp.status_code, 403)
+        self.cliente.refresh_from_db()
+        self.assertFalse(self.cliente.cupom_resgatado)
+
+    def test_noticias_mostra_cupom_ja_resgatado(self):
+        self.cliente.cupom_resgatado_em = timezone.now()
+        self.cliente.save()
+        self.client.login(username="c@x.com", password="senha123")
+        resp = self.client.get(reverse("noticias"))
+        self.assertContains(resp, "Cupom já resgatado")
+        self.assertNotContains(resp, "BARBER15OFF725")
+
+
+class MensagensTests(TestCase):
+    def setUp(self):
+        User.objects.create_user("m@x.com", "m@x.com", "senha123")
+
+    def test_mensagem_de_login_aparece_na_tela_seguinte(self):
+        resp = self.client.post(reverse("login"), {"email": "m@x.com", "senha": "senha123"}, follow=True)
+        self.assertContains(resp, "Login realizado com sucesso")
+
+    def test_mensagem_de_login_nao_reaparece_apos_logout(self):
+        self.client.post(reverse("login"), {"email": "m@x.com", "senha": "senha123"})
+        resp = self.client.post(reverse("logout"), follow=True)
+        self.assertNotContains(resp, "Login realizado com sucesso")
+
+    def test_mensagem_nao_fica_pendente_ao_navegar_entre_paginas(self):
+        self.client.post(reverse("login"), {"email": "m@x.com", "senha": "senha123"})
+        for nome in ("home", "noticias", "mais"):
+            resp = self.client.get(reverse(nome))
+            self.assertEqual(resp.status_code, 200)
+        resp = self.client.post(reverse("logout"), follow=True)
+        self.assertNotContains(resp, "Login realizado com sucesso")
