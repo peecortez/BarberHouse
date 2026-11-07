@@ -1,90 +1,39 @@
-{% load static versao_static %}
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-    <meta charset="UTF-8">
-    <title>Login - Barber Shop</title>
-    <link rel="stylesheet" href="{% static_v 'agendamentos/barbearia.css' %}">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
-</head>
-<body>
+{% extends 'base_auth.html' %}
 
-    <section class="tela">
-        <div class="caixa-login">
+{% block titulo %}Login - BarberHouse{% endblock %}
+{% block texto_carregando %}Preparando seu atendimento...{% endblock %}
 
-            <img src="{% static 'agendamentos/bigode.png' %}" class="bigode" alt="Logo da barbearia">
+{% block conteudo %}
+    <h1>Seu estilo <span class="destaque">começa</span> aqui.</h1>
+    <p class="subtitulo">Entre para agendar seu próximo horário.</p>
 
-            <h1 class="nome-barbearia">Barber Shop</h1>
-            <p class="subtitulo">Seu estilo começa aqui.</p>
-            {% if messages %}
-                {% for message in messages %}
-                    {% if message.tags == 'success' %}
-                        <p class="mensagem sucesso">{{ message }}</p>
-                    {% elif message.tags == 'error' %}
-                        <p class="mensagem erro">{{ message }}</p>
-                    {% else %}
-                        <p class="mensagem">{{ message }}</p>
-                    {% endif %}
-                {% endfor %}
-            {% endif %}
+    {% for message in messages %}
+        <p class="mensagem {{ message.tags }}">{{ message }}</p>
+    {% endfor %}
 
-            <form method="post" id="formLogin">
-                {% csrf_token %}
+    <form method="post" id="formLogin" data-carregando>
+        {% csrf_token %}
 
-                <div class="campo">
-                    <label for="email">E-mail</label>
-                    <input type="email" id="email" name="email" placeholder="Digite seu e-mail" required>
-                </div>
-
-                <div class="campo">
-                    <label for="senha">Senha</label>
-                    <div class="senha-controle">
-                        <input type="password" id="senha" name="senha" placeholder="Digite sua senha" required>
-                        <button type="button" id="alternarVisibilidadeSenha" class="botao-olho" aria-label="Mostrar senha" aria-pressed="false">
-                            <i class="fa-solid fa-eye" aria-hidden="true"></i>
-                        </button>
-                    </div>
-                </div>
-
-                <button type="submit" class="botao-principal">Entrar</button>
-
-            </form>
-
-            <div class="criar-conta-area">
-                <p>Não possui uma conta?</p>
-                <a href="{% url 'cadastro' %}" class="botao-secundario">Criar conta</a>
-            </div>
-
+        <div class="campo">
+            <label for="email">E-mail</label>
+            <input type="email" id="email" name="email" placeholder="Digite seu e-mail" autocomplete="email" required>
         </div>
-    </section>
 
-    <div id="overlayCarregando" style="display:none; position:fixed; inset:0; z-index:999; flex-direction:column; align-items:center; justify-content:center; background:rgba(11,12,14,0.92);">
-        <div class="animacao-barbearia">
-            <div class="loading-corte">
-                <i class="fa-solid fa-scissors tesoura-loading"></i>
+        <div class="campo">
+            <label for="senha">Senha</label>
+            <div class="senha-controle">
+                <input type="password" id="senha" name="senha" placeholder="Digite sua senha" autocomplete="current-password" required>
+                <button type="button" class="botao-olho" data-alternar-senha="senha" aria-label="Mostrar senha" aria-pressed="false">
+                    <i class="fa-solid fa-eye" aria-hidden="true"></i>
+                </button>
             </div>
         </div>
-        <p class="texto-loading">Preparando seu atendimento...</p>
+
+        <button type="submit" class="botao-principal">Entrar</button>
+    </form>
+
+    <div class="criar-conta-area">
+        <p>Não possui uma conta?</p>
+        <a href="{% url 'cadastro' %}" class="botao-secundario">Criar conta</a>
     </div>
-
-    <script>
-     const campoSenhaLogin = document.getElementById('senha');
-     const botaoOlhoSenha = document.getElementById('alternarVisibilidadeSenha');
-     const iconeOlhoSenha = botaoOlhoSenha.querySelector('i');
-
-     botaoOlhoSenha.addEventListener('click', function () {
-        const mostrarSenha = campoSenhaLogin.type === 'password';
-        campoSenhaLogin.type = mostrarSenha ? 'text' : 'password';
-        botaoOlhoSenha.setAttribute('aria-label', mostrarSenha ? 'Ocultar senha' : 'Mostrar senha');
-        botaoOlhoSenha.setAttribute('aria-pressed', String(mostrarSenha));
-        iconeOlhoSenha.classList.toggle('fa-eye', !mostrarSenha);
-        iconeOlhoSenha.classList.toggle('fa-eye-slash', mostrarSenha);
-     });
-
-     document.getElementById('formLogin').addEventListener('submit', function () {
-        document.getElementById('overlayCarregando').style.display = 'flex';
-     });
-    </script>
-
-</body>
-</html>
+{% endblock %}

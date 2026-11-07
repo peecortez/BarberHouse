@@ -1,22 +1,12 @@
-{% load static versao_static %}
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-    <meta charset="UTF-8">
-    <title>Mais - Barber Shop</title>
-    <link rel="stylesheet" href="{% static_v 'agendamentos/barbearia.css' %}">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
-</head>
-<body>
-    {% include '_toasts.html' %}
-    <section class="tela">
-        <div class="caixa-login" style="width: 90%; max-width: 500px;">
-            {% include '_navegacao.html' %}
-            <h1>Mais</h1>
-            <p class="subtitulo">Opções adicionais</p>
-            <p>Em breve teremos mais funcionalidades disponíveis nesta seção.</p>
-        </div>
+{% extends 'base_app.html' %}
+
+{% block titulo %}Mais - BarberHouse{% endblock %}
+{% block titulo_pagina %}Mais{% endblock %}
+{% block subtitulo_pagina %}Opções adicionais{% endblock %}
+
+{% block conteudo %}
+    <section class="painel estado-vazio">
+        <span class="estado-vazio-icone"><i class="fa-solid fa-ellipsis" aria-hidden="true"></i></span>
+        <p>Em breve teremos mais funcionalidades disponíveis nesta seção.</p>
     </section>
-    <script src="{% static_v 'agendamentos/menu.js' %}"></script>
-</body>
-</html>
+{% endblock %}

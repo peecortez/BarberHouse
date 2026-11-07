@@ -51,10 +51,13 @@ class FluxoAgendamentoTest(TestCase):
         self.prof.refresh_from_db()
         self.assertFalse(self.prof.agenda_aberta)
 
-    def test_menu_js_navega_e_nao_manda_segundos(self):
-        js = JS.read_text(encoding="utf-8")
+    def test_menu_navega_e_js_nao_manda_segundos(self):
+        # A navegacao agora e feita por links nos templates (home + barra fixa)
+        self.logar("cli@x.com")
+        html = self.client.get("/").content.decode()
         for rota in ("/agenda-cliente/", "/meus-agendamentos/", "/noticias/", "/mais/"):
-            self.assertIn(rota, js)
+            self.assertIn(f'href="{rota}"', html)
+        js = JS.read_text(encoding="utf-8")
         self.assertNotIn("${horario}:00", js)
 
     def test_agendar_ponta_a_ponta(self):
@@ -104,16 +107,18 @@ class MenuPorPerfilTest(BaseComPerfis):
     def test_profissional_ve_minha_agenda_e_nao_agendar(self):
         self.logar("bar@x.com")
         html = self.client.get("/").content.decode()
-        self.assertIn("Minha Agenda", html)
-        self.assertNotIn('data-pagina="agenda"', html)
+        self.assertIn(f'href="{reverse("gerenciar_agenda")}"', html)
+        self.assertIn("minha agenda", html.lower())
+        self.assertNotIn(f'href="{reverse("agenda_cliente")}"', html)
         self.assertNotIn("Meus agendamentos", html)
 
     def test_cliente_ve_agendar_e_nao_minha_agenda(self):
         self.logar("cli@x.com")
         html = self.client.get("/").content.decode()
-        self.assertIn('data-pagina="agenda"', html)
+        self.assertIn(f'href="{reverse("agenda_cliente")}"', html)
         self.assertIn("Meus agendamentos", html)
-        self.assertNotIn("Minha Agenda", html)
+        self.assertNotIn(f'href="{reverse("gerenciar_agenda")}"', html)
+        self.assertNotIn("minha agenda", html.lower())
 
     def test_profissional_em_meus_agendamentos_vai_pra_minha_agenda(self):
         self.logar("bar@x.com")
@@ -134,14 +139,16 @@ class LogoutEVoltarTest(BaseComPerfis):
         self.assertEqual(self.client.get("/").status_code, 200)
 
     def test_telas_tem_voltar_e_sair(self):
+        # A barra fixa (base_app.html) leva de volta ao inicio e tem o botao Sair
+        voltar = f'href="{reverse("home")}"'
         self.logar("cli@x.com")
         for nome in ("agenda_cliente", "meus_agendamentos", "noticias", "mais"):
             html = self.client.get(reverse(nome)).content.decode()
-            self.assertIn("Voltar", html, nome)
+            self.assertIn(voltar, html, nome)
             self.assertIn(f'action="{reverse("logout")}"', html, nome)
         self.logar("bar@x.com")
         html = self.client.get(reverse("gerenciar_agenda")).content.decode()
-        self.assertIn("Voltar", html)
+        self.assertIn(voltar, html)
         self.assertIn(f'action="{reverse("logout")}"', html)
 
     def test_menu_principal_tem_sair(self):
@@ -335,6 +342,15 @@ class MensagensTests(TestCase):
         resp = self.client.post(reverse("login"), {"email": "m@x.com", "senha": "senha123"}, follow=True)
         self.assertContains(resp, "Login realizado com sucesso")
 
+    def test_notificacao_tem_botao_de_fechar(self):
+        resp = self.client.post(reverse("login"), {"email": "m@x.com", "senha": "senha123"}, follow=True)
+        self.assertContains(resp, 'class="toast-fechar"')
+        self.assertContains(resp, 'aria-label="Fechar notificação"')
+
+    def test_notificacao_dura_6_segundos(self):
+        css = (BASE / "static" / "agendamentos" / "barbearia.css").read_text(encoding="utf-8")
+        self.assertIn("--toast-duracao: 6s;", css)
+
     def test_mensagem_de_login_nao_reaparece_apos_logout(self):
         self.client.post(reverse("login"), {"email": "m@x.com", "senha": "senha123"})
         resp = self.client.post(reverse("logout"), follow=True)
@@ -347,3 +363,54 @@ class MensagensTests(TestCase):
             self.assertEqual(resp.status_code, 200)
         resp = self.client.post(reverse("logout"), follow=True)
         self.assertNotContains(resp, "Login realizado com sucesso")
+
+
+class LogoTests(BaseComPerfis):
+    def test_logo_no_login_com_slogan(self):
+        resp = self.client.get(reverse("login"))
+        self.assertContains(resp, 'class="logo logo-auth"')
+        self.assertContains(resp, "barbearia &amp; estilo")
+        self.assertContains(resp, "favicon.png")
+
+    def test_bigode_animado_na_barra_leva_para_inicio(self):
+        self.assertTrue(self.client.login(username="cli@x.com", password="senha123"))
+        resp = self.client.get(reverse("noticias"))
+        self.assertContains(resp, 'class="bigode-nav svg-animado"')
+        self.assertContains(resp, "<animateTransform")
+        self.assertContains(resp, 'aria-label="BarberHouse, ir para o início"')
+        self.assertNotContains(resp, "bigode.png")
+        # O logo completo fica so na home
+        self.assertNotContains(resp, "logo-completo")
+
+    def test_logo_completo_svg_na_home_com_inter(self):
+        self.assertTrue(self.client.login(username="cli@x.com", password="senha123"))
+        resp = self.client.get(reverse("home"))
+        self.assertContains(resp, 'class="logo-completo svg-animado"')
+        self.assertContains(resp, 'aria-label="BarberHouse - barbearia e estilo"')
+        self.assertContains(resp, "family=Inter:wght@400;800")
+        # comentarios de template de varias linhas nao podem vazar para o HTML
+        self.assertNotContains(resp, "viewBox recortado")
+
+    def test_arquivos_do_logo_existem(self):
+        estaticos = BASE / "static" / "agendamentos"
+        for nome in ("logo-bigode.png", "favicon.png", "apple-touch-icon.png"):
+            self.assertTrue((estaticos / nome).exists(), nome)
+
+
+class AberturaMarcaTests(BaseComPerfis):
+    def test_abertura_aparece_so_na_primeira_home_apos_login(self):
+        resp = self.client.post(reverse("login"), {"email": "cli@x.com", "senha": "senha123"}, follow=True)
+        self.assertContains(resp, 'class="abertura-marca"')
+        self.assertContains(resp, "com-abertura")
+        resp = self.client.get(reverse("home"))
+        self.assertNotContains(resp, 'class="abertura-marca"')
+        self.assertNotContains(resp, "com-abertura")
+
+    def test_fundo_por_tela(self):
+        self.assertTrue(self.client.login(username="cli@x.com", password="senha123"))
+        self.assertContains(self.client.get(reverse("home")), "fundo-home")
+        self.assertContains(self.client.get(reverse("agenda_cliente")), "fundo-agendamentos")
+        self.assertContains(self.client.get(reverse("meus_agendamentos")), "fundo-agendamentos")
+        noticias = self.client.get(reverse("noticias"))
+        self.assertNotContains(noticias, "fundo-home")
+        self.assertNotContains(noticias, "fundo-agendamentos")

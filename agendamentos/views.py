@@ -65,6 +65,8 @@ def login_view(request):
         usuario = authenticate(request, username=email, password=senha)
         if usuario is not None:
             login(request, usuario)
+            # A home mostra a abertura da marca uma unica vez, logo apos o login
+            request.session['abertura_marca'] = True
             messages.success(request, 'Login realizado com sucesso!')
             return redirect('home')
         else:
@@ -79,7 +81,8 @@ def home(request):
         tipo = 'profissional'
     else:
         tipo = 'cliente'
-    return render(request, "home.html", {'tipo': tipo})
+    abertura_marca = request.session.pop('abertura_marca', False)
+    return render(request, "home.html", {'tipo': tipo, 'abertura_marca': abertura_marca})
 
 
 @login_required

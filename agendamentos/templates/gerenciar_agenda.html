@@ -1,67 +1,62 @@
-{% load static versao_static %}
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-    <meta charset="UTF-8">
-    <title>Minha Agenda</title>
-    <link rel="stylesheet" href="{% static_v 'agendamentos/barbearia.css' %}">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
-</head>
-<body>
-    {% include '_toasts.html' %}
-    <section class="tela">
-        <div class="caixa-login" style="width: 90%; max-width: 600px;">
-            {% include '_navegacao.html' %}
-            <h1>Minha Agenda</h1>
-            <p class="subtitulo">Seus agendamentos</p>
+{% extends 'base_app.html' %}
 
-            <div class="configuracoes">
-                <div class="campo">
-                    <label>Status da Agenda</label>
-                    <div class="toggle-agenda">
-                        {% csrf_token %}
-                        <button id="btnToggleAgenda" class="botao-principal">
-                            {{ profissional.agenda_aberta|yesno:"Fechar Agenda,Abrir Agenda" }}
-                        </button>
-                        <span id="statusAgenda" class="status-indicator">
-                            {{ profissional.agenda_aberta|yesno:"Aberta,Fechada" }}
-                        </span>
-                    </div>
-                </div>
-            </div>
+{% block titulo %}Minha Agenda - BarberHouse{% endblock %}
+{% block titulo_pagina %}Minha agenda{% endblock %}
+{% block subtitulo_pagina %}Seus agendamentos{% endblock %}
 
-            {% if agendamentos_ativos %}
-                <section class="grupo-agendamentos">
-                    <h2>Agendamentos ativos</h2>
-                    {% for agendamento in agendamentos_ativos %}
-                        {% include '_item_agendamento_profissional.html' %}
-                    {% endfor %}
-                </section>
-            {% endif %}
-
-            {% if agendamentos_concluidos %}
-                <section class="grupo-agendamentos concluidos">
-                    <h2>Concluídos</h2>
-                    {% for agendamento in agendamentos_concluidos %}
-                        {% include '_item_agendamento_profissional.html' %}
-                    {% endfor %}
-                </section>
-            {% endif %}
-
-            {% if agendamentos_cancelados %}
-                <section class="grupo-agendamentos cancelados">
-                    <h2>Cancelados</h2>
-                    {% for agendamento in agendamentos_cancelados %}
-                        {% include '_item_agendamento_profissional.html' %}
-                    {% endfor %}
-                </section>
-            {% endif %}
-
-            {% if not agendamentos_ativos and not agendamentos_concluidos and not agendamentos_cancelados %}
-                <p>Nenhum agendamento encontrado.</p>
-            {% endif %}
+{% block conteudo %}
+    <section class="painel configuracoes">
+        <div class="configuracoes-texto">
+            <span class="rotulo-campo" id="rotuloStatusAgenda">Status da agenda</span>
+            <span id="statusAgenda" class="status-indicator {{ profissional.agenda_aberta|yesno:'aberta,fechada' }}">
+                {{ profissional.agenda_aberta|yesno:"Aberta para agendamentos,Fechada para agendamentos" }}
+            </span>
+        </div>
+        <div class="toggle-agenda" role="group" aria-labelledby="rotuloStatusAgenda">
+            {% csrf_token %}
+            <button type="button" id="btnToggleAgenda" class="{{ profissional.agenda_aberta|yesno:'botao-secundario,botao-principal' }}">
+                {{ profissional.agenda_aberta|yesno:"Fechar Agenda,Abrir Agenda" }}
+            </button>
         </div>
     </section>
-    <script src="{% static_v 'agendamentos/menu.js' %}"></script>
-</body>
-</html>
+
+    {% if agendamentos_ativos %}
+        <section class="grupo-agendamentos">
+            <h2>Agendamentos ativos <span class="grupo-contagem">{{ agendamentos_ativos|length }}</span></h2>
+            <div class="lista-agendamentos">
+                {% for agendamento in agendamentos_ativos %}
+                    {% include '_item_agendamento_profissional.html' %}
+                {% endfor %}
+            </div>
+        </section>
+    {% endif %}
+
+    {% if agendamentos_concluidos %}
+        <section class="grupo-agendamentos concluidos">
+            <h2>Concluídos <span class="grupo-contagem">{{ agendamentos_concluidos|length }}</span></h2>
+            <div class="lista-agendamentos">
+                {% for agendamento in agendamentos_concluidos %}
+                    {% include '_item_agendamento_profissional.html' %}
+                {% endfor %}
+            </div>
+        </section>
+    {% endif %}
+
+    {% if agendamentos_cancelados %}
+        <section class="grupo-agendamentos cancelados">
+            <h2>Cancelados <span class="grupo-contagem">{{ agendamentos_cancelados|length }}</span></h2>
+            <div class="lista-agendamentos">
+                {% for agendamento in agendamentos_cancelados %}
+                    {% include '_item_agendamento_profissional.html' %}
+                {% endfor %}
+            </div>
+        </section>
+    {% endif %}
+
+    {% if not agendamentos_ativos and not agendamentos_concluidos and not agendamentos_cancelados %}
+        <section class="painel estado-vazio">
+            <span class="estado-vazio-icone"><i class="fa-regular fa-calendar" aria-hidden="true"></i></span>
+            <p>Nenhum agendamento encontrado.</p>
+        </section>
+    {% endif %}
+{% endblock %}

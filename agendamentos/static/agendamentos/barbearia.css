@@ -1,4 +1,69 @@
-@import url("https://googleapis.com");
+/* ============================================================
+   BarberHouse - estilos
+   Base visual: Dimension (canvas, vidro fosco, tipografia, pilulas)
+   + Mercury (foto em tela cheia no login, barra que ganha blur ao rolar)
+   + Tomorro (um so acento, palavra de destaque, etiquetas de status lavadas)
+   + Ponder (titulo em dois tons, curva de movimento dos cards)
+   + Jason Bradley (abertura da marca, revelacao da foto do centro para as bordas, vidro leve)
+   Acento unico da marca: ambar #e2a053. Fotos de fundo em preto e branco.
+   Fontes carregadas via <link> em base.html (Google Fonts).
+   ============================================================ */
+
+:root {
+    color-scheme: dark;
+
+    /* Superficies (Dimension) */
+    --cor-fundo: #0a0a0a;
+    --cor-superficie: #161616;
+
+    /* Glassmorphism: vidro translucido sobre a foto de fundo.
+       Ajuste a intensidade por aqui (transparencia, blur, borda e sombra). */
+    --vidro-fundo: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.035) 100%);
+    --vidro-fundo-hover: linear-gradient(135deg, rgba(255, 255, 255, 0.14) 0%, rgba(255, 255, 255, 0.05) 100%);
+    --vidro-fundo-escuro: linear-gradient(135deg, rgba(30, 30, 30, 0.62) 0%, rgba(14, 14, 14, 0.5) 100%);
+    /* Blur leve (Jason Bradley usa ~7px): a foto continua reconhecivel atras do vidro */
+    --vidro-blur: blur(10px) saturate(140%);
+    --vidro-borda: rgba(255, 255, 255, 0.14);
+    --vidro-reflexo: inset 0 1px 0 rgba(255, 255, 255, 0.14);
+    --vidro-sombra: 0 10px 40px -8px rgba(0, 0, 0, 0.55);
+
+    /* Texto (Dimension: nunca branco puro no corpo) */
+    --cor-texto: #ededed;
+    --cor-texto-2: #c2c2c2;
+    --cor-texto-3: #8f8f8f;
+    --cor-titulo: #ffffff;
+
+    /* Bordas finas no lugar de sombras */
+    --cor-borda: rgba(255, 255, 255, 0.1);
+    --cor-borda-forte: rgba(255, 255, 255, 0.2);
+
+    /* Acento unico (so no botao principal, estado ativo e foco) */
+    --cor-acento: #e2a053;
+    --cor-acento-hover: #ecb06a;
+    --cor-acento-lavado: rgba(226, 160, 83, 0.14);
+    --cor-sobre-acento: #0a0a0a;
+
+    /* Estados (etiquetas lavadas, estilo Tomorro) */
+    --cor-sucesso: #6ee7a0;
+    --cor-sucesso-lavado: rgba(74, 222, 128, 0.12);
+    --cor-erro: #fca5a5;
+    --cor-erro-forte: #f87171;
+    --cor-erro-lavado: rgba(248, 113, 113, 0.12);
+
+    /* Formas */
+    --raio-pilula: 999px;
+    --raio-ui: 12px;
+    --raio-card: 24px;
+
+    /* Tipografia (Dimension: DM Sans no texto e titulos grandes, Geist nos titulos de secao) */
+    --fonte-texto: 'DM Sans', system-ui, sans-serif;
+    --fonte-titulo: 'Geist', 'DM Sans', system-ui, sans-serif;
+
+    /* Movimento */
+    --ease-saida: cubic-bezier(0.22, 1, 0.36, 1);
+    /* Curva do Ponder para cards que crescem (transicao card -> pagina) */
+    --ease-morph: cubic-bezier(0.32, 0.72, 0, 1);
+}
 
 * {
     margin: 0;
@@ -8,580 +73,384 @@
 
 body {
     min-height: 100vh;
-    font-family: 'Inter', sans-serif;
-    color: #e2e8f0;
-    background-color: #0b0c0e;
+    font-family: var(--fonte-texto);
+    font-size: 16px;
+    line-height: 1.5;
+    color: var(--cor-texto);
+    background-color: var(--cor-fundo);
     -webkit-font-smoothing: antialiased;
-    padding-top: 70px; /* Compensate for fixed header */
 }
 
 .escondida {
     display: none !important;
 }
 
+:focus-visible {
+    outline: 2px solid var(--cor-acento);
+    outline-offset: 2px;
+}
 
+/* Palavra de destaque no titulo (Tomorro) */
+.destaque {
+    color: var(--cor-acento);
+}
+
+
+/* ============================================================
+   SVGs animados do logo (bigode na barra, logo completo na home).
+   Os arquivos originais pintam tudo de escuro (#22201C) para fundo
+   creme; aqui as cores vem destas classes, na versao escura.
+   ============================================================ */
+.svg-tinta {
+    fill: var(--cor-titulo);
+}
+
+.svg-destaque {
+    fill: var(--cor-acento);
+}
+
+.svg-slogan {
+    fill: var(--cor-texto-3);
+}
+
+/* Logo completo no topo da home */
+.home-marca {
+    margin-bottom: 28px;
+    animation: subir 0.7s var(--ease-saida) backwards;
+}
+
+.logo-completo {
+    display: block;
+    width: clamp(180px, 46vw, 230px);
+    height: auto;
+    overflow: visible;
+}
+
+
+/* ============================================================
+   Logo oficial (_logo.html) - versao para fundo escuro.
+   Mesma composicao do arquivo original: bigode centralizado sobre
+   "barberhouse", com o slogan opcional embaixo. Tudo em "em": o
+   tamanho do logo inteiro vem do font-size de cada variante.
+   Cores: bigode e "barber" claros (no original sao escuros sobre creme);
+   "house" usa o acento ambar da interface no lugar do ferrugem
+   original (#b9512a), para nao ter dois laranjas proximos na tela.
+   ============================================================ */
+.logo {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    font-size: 16px;
+    line-height: 1;
+    white-space: nowrap;
+}
+
+/* Bigode: mascara PNG (proporcao 5:1) pintada pela cor de fundo */
+.logo-bigode {
+    display: block;
+    width: 5.8em;
+    aspect-ratio: 5 / 1;
+    background-color: var(--cor-titulo);
+    -webkit-mask: url('/static/agendamentos/logo-bigode.png') center / contain no-repeat;
+    mask: url('/static/agendamentos/logo-bigode.png') center / contain no-repeat;
+}
+
+/* Inter 800 e 400, como no SVG oficial (letter-spacing -2/54 e 3/17) */
+.logo-nome {
+    margin-top: 0.42em;
+    color: var(--cor-titulo);
+    font-family: 'Inter', Arial, sans-serif;
+    font-weight: 800;
+    letter-spacing: -0.037em;
+}
+
+.logo-nome-destaque {
+    color: var(--cor-acento);
+}
+
+.logo-slogan {
+    margin-top: 0.75em;
+    color: var(--cor-texto-3);
+    font-family: 'Inter', Arial, sans-serif;
+    font-size: max(11px, 0.3em);
+    font-weight: 400;
+    letter-spacing: 0.18em;
+}
+
+/* Variantes de tamanho */
+.logo-auth {
+    font-size: 26px;
+}
+
+.logo-abertura {
+    font-size: clamp(34px, 9vw, 48px);
+}
+
+
+/* ============================================================
+   Fundos
+   ============================================================ */
+
+/* Login/cadastro: foto em tela cheia com veu escuro (Mercury).
+   Pseudo-elemento fixo no lugar de background-attachment: fixed,
+   que falha no iOS e pesa na rolagem. */
+body.layout-auth::before,
+body.layout-auth::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+}
+
+body.layout-auth::before {
+    z-index: -2;
+    background: url('/static/agendamentos/fundo-barbearia.jpg') center / cover no-repeat;
+    filter: grayscale(1) contrast(1.05);
+}
+
+body.layout-auth::after {
+    z-index: -1;
+    background:
+        radial-gradient(ellipse at center, rgba(10, 10, 10, 0.45) 0%, rgba(10, 10, 10, 0.88) 75%),
+        linear-gradient(rgba(10, 10, 10, 0.25), rgba(10, 10, 10, 0.6));
+}
+
+/* Telas internas: a mesma foto, com veu mais escuro, para o vidro ter o que desfocar.
+   Por cima: brilho ambar no topo e granulado leve. */
+body.layout-app::before,
+body.layout-app::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+}
+
+body.layout-app::before {
+    z-index: -2;
+    background: url('/static/agendamentos/fundo-barbearia.jpg') center / cover no-repeat;
+    filter: grayscale(1) contrast(1.05);
+}
+
+/* Foto por tela (classe vinda do bloco classe_fundo de base_app.html).
+   As duas fotos sao verticais: o enquadramento mira no assunto principal. */
+body.fundo-home::before {
+    background-image: url('/static/agendamentos/fundo-home.jpg');
+    background-position: center 32%;
+    /* A foto ja e P&B com cor so no poste: o vermelho e o azul ficam */
+    filter: contrast(1.05);
+}
+
+body.fundo-agendamentos::before {
+    background-image: url('/static/agendamentos/fundo-agendamentos.jpg');
+    background-position: center 45%;
+}
+
+body.layout-app::after {
+    z-index: -1;
+    background:
+        url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)' opacity='0.05'/></svg>"),
+        radial-gradient(60% 45% at 85% -10%, rgba(226, 160, 83, 0.18), transparent 70%),
+        linear-gradient(180deg, rgba(10, 10, 10, 0.72) 0%, rgba(10, 10, 10, 0.82) 45%, rgba(10, 10, 10, 0.9) 100%);
+}
+
+
+/* ============================================================
+   Login e cadastro (base_auth.html)
+   ============================================================ */
 .tela {
     min-height: 100vh;
-    background-image: 
-        linear-gradient(rgba(11, 12, 14, 0.5), rgba(11, 12, 14, 0.75)), 
-        url('/static/agendamentos/fundo-barbearia.jpg'); 
-    background-size: cover;
-    background-position: center center;
-    background-attachment: fixed;
-    background-repeat: no-repeat;
-    
     display: flex;
     justify-content: center;
     align-items: center;
-    padding: 24px;
-    box-sizing: border-box;
+    padding: 32px 16px;
 }
 
 .caixa-login {
     width: 100%;
-    max-width: 400px;
-    padding: 40px 30px;
-    background: rgba(21, 23, 28, 0.75); 
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    border-radius: 16px;
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6);
-    text-align: center;
+    max-width: 420px;
+    padding: 36px 32px;
     display: flex;
     flex-direction: column;
+    text-align: left;
+    background: var(--vidro-fundo);
+    backdrop-filter: var(--vidro-blur);
+    -webkit-backdrop-filter: var(--vidro-blur);
+    border: 1px solid var(--vidro-borda);
+    border-radius: var(--raio-card);
+    box-shadow: var(--vidro-reflexo), var(--vidro-sombra);
+    animation: subir 0.7s var(--ease-saida) backwards;
 }
 
-.bigode {
-    width: 100px;
-    height: 100px;
-    object-fit: contain;
-    display: block;
-    margin: 0 auto 16px;
-    filter: drop-shadow(0 4px 12px rgba(0,0,0,0.5));
+.marca-auth {
+    display: flex;
+    margin-bottom: 32px;
 }
 
 .caixa-login h1 {
-    font-family: 'Montserrat', sans-serif;
-    font-weight: 800;
-    font-size: 30px;
-    letter-spacing: -0.5px;
-    color: #ffffff;
-    text-transform: uppercase;
-    margin-bottom: 4px;
+    font-family: var(--fonte-texto);
+    font-size: clamp(30px, 7vw, 36px);
+    font-weight: 500;
+    line-height: 1.05;
+    letter-spacing: -0.035em;
+    color: var(--cor-titulo);
 }
 
 .subtitulo {
-    margin-bottom: 28px;
-    color: #9fa4b4;
-    font-size: 14px;
-    font-weight: 400;
-}
-
-
-.campo {
-    margin-bottom: 20px;
-    text-align: left;
-    display: flex;
-    flex-direction: column;
-    width: 100%;
-}
-
-.campo label {
-    display: block;
-    font-size: 13px;
-    font-weight: 600;
-    margin-bottom: 8px;
-    color: #e2a053;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-
-.campo input,
-.campo select {
-    width: 100%;
-    padding: 14px 16px;
-    background-color: rgba(15, 17, 21, 0.7);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 10px;
-    color: #ffffff;
-    font-family: 'Inter', sans-serif;
+    margin: 10px 0 28px;
+    color: var(--cor-texto-2);
     font-size: 15px;
-    outline: none;
-    transition: all 0.2s ease;
-}
-
-.campo input::placeholder {
-    color: #5a6072;
-}
-
-.campo input:hover,
-.campo select:hover {
-    border-color: rgba(255, 255, 255, 0.2);
-    background-color: rgba(21, 24, 30, 0.8);
-}
-
-.campo input:focus,
-.campo select:focus {
-    border-color: #e2a053;
-    background-color: rgba(15, 17, 21, 0.9);
-    box-shadow: 0 0 0 3px rgba(226, 160, 83, 0.2);
-}
-
-.botao-principal {
-    width: 100%;
-    padding: 15px;
-    border: none;
-    border-radius: 10px;
-    background: #e2a053;
-    color: #0b0c0e;
-    font-family: 'Inter', sans-serif;
-    font-size: 15px;
-    font-weight: 700;
-    cursor: pointer;
-    margin-top: 10px;
-    transition: all 0.2s ease;
-    box-shadow: 0 4px 12px rgba(226, 160, 83, 0.2);
-}
-
-.botao-principal:hover {
-    background: #f1b267;
-    transform: translateY(-1px);
-    box-shadow: 0 6px 20px rgba(226, 160, 83, 0.3);
 }
 
 .criar-conta-area {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
     margin-top: 24px;
     padding-top: 20px;
-    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    border-top: 1px solid var(--cor-borda);
 }
 
 .criar-conta-area p {
-    margin-bottom: 12px;
-    color: #9fa4b4;
+    color: var(--cor-texto-2);
     font-size: 14px;
-}
-
-.botao-secundario {
-    display: inline-block;
-    padding: 10px 24px;
-    border: 1px solid rgba(255, 255, 255, 0.15);
-    border-radius: 10px;
-    background: transparent;
-    color: #ffffff;
-    font-size: 14px;
-    font-weight: 600;
-    cursor: pointer;
-    text-decoration: none;
-    transition: all 0.2s ease;
-}
-
-.botao-secundario:hover {
-    background-color: rgba(255, 255, 255, 0.05);
-    border-color: #e2a053;
-    color: #e2a053;
 }
 
 .botao-voltar {
-    margin-top: 16px;
-    background: none;
-    border: none;
-    color: #707587;
+    display: inline-flex;
+    align-self: flex-start;
+    margin-top: 20px;
+    color: var(--cor-texto-2);
     font-size: 14px;
-    cursor: pointer;
+    text-decoration: none;
     transition: color 0.2s ease;
 }
 
 .botao-voltar:hover {
-    color: #e2a053;
-}
-
-/* Discreet logout button */
-.botao-logout {
-    background: transparent;
-    border: none;
-    color: #e2a053;
-    font-family: 'Inter', sans-serif;
-    font-size: 14px;
-    font-weight: 500;
-    cursor: pointer;
-    padding: 8px 12px;
-    border-radius: 6px;
-    transition: all 0.2s ease;
-}
-
-.botao-logout:hover {
-    background: rgba(226, 160, 83, 0.1);
-    color: #ffffff;
-}
-
-.botao-logout:active {
-    transform: scale(0.98);
-}
-
-/* Logout button positioned in top-right corner */
-.logout-form-top {
-    position: absolute;
-    top: 24px;
-    right: 24px;
-    z-index: 100;
-}
-
-.logout-form-top .botao-logout {
-    /* Inherits the base .botao-logout styles */
-}
-
-.mensagem {
-    margin-top: 14px;
-    font-size: 14px;
-    min-height: 20px;
-}
-
-.mensagem.erro {
-    color: #f87171;
-}
-
-.mensagem.sucesso {
-    color: #4ade80;
+    color: var(--cor-texto);
 }
 
 
-.menu-inicial {
+/* ============================================================
+   Formularios
+   ============================================================ */
+.campo {
+    display: flex;
     flex-direction: column;
-    text-align: center;
-}
-
-.menu-inicial h1 {
-    font-family: 'Montserrat', sans-serif;
-    font-size: 36px;
-    color: #ffffff;
-    margin-bottom: 8px;
-}
-
-.subtitulo-menu {
-    color: #9fa4b4;
-    font-size: 15px;
-    margin-bottom: 40px;
-}
-
-.opcoes-menu-inicial {
     width: 100%;
-    max-width: 560px;
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 24px;
-}
-
-.opcao-menu-inicial {
-    background: rgba(21, 23, 28, 0.75); 
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    padding: 28px;
-    border-radius: 16px;
-    color: #ffffff;
-    font-family: inherit;
-    font-size: 16px;
-    font-weight: 600;
-    cursor: pointer;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 16px;
-    transition: all 0.2s ease;
-}
-
-.opcao-menu-inicial:hover {
-    transform: translateY(-4px);
-    border-color: #e2a053;
-    background: rgba(25, 28, 35, 0.85);
-    box-shadow: 0 12px 24px rgba(0,0,0,0.4);
-}
-
-.icone-menu-inicial {
-    width: 70px;
-    height: 70px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 12px;
-    background-color: rgba(255, 255, 255, 0.03);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    font-size: 30px;
-    color: #e2a053;
-    transition: all 0.2s ease;
-}
-
-.opcao-menu-inicial:hover .icone-menu-inicial {
-    background-color: #e2a053;
-    color: #0b0c0e;
-}
-
-
-#aplicativo {
-    min-height: 100vh;
-    background-image: 
-        linear-gradient(rgba(11, 12, 14, 0.65), rgba(11, 12, 14, 0.85)), 
-        url('/static/agendamentos/fundo-barbearia.jpg'); 
-    background-size: cover;
-    background-position: center center;
-    background-attachment: fixed;
-    background-repeat: no-repeat;
-    display: block; 
+    margin-bottom: 18px;
     text-align: left;
 }
 
-.cabecalho {
-    height: 70px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0 32px;
-    background-color: rgba(17, 19, 23, 0.95);
-    backdrop-filter: blur(10px);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    z-index: 20;
-}
-
-.logo-pequena {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    color: #ffffff;
-    font-family: 'Montserrat', sans-serif;
-    font-size: 18px;
-    font-weight: 700;
-}
-
-.logo-pequena .logo-bigode {
-    width: 40px;
-    height: 40px;
-    object-fit: contain;
-}
-
-.menu-navegacao {
-    position: fixed;
-    left: 0;
-    top: 70px;
-    width: 250px;
-    height: calc(100vh - 70px);
-    padding: 24px 16px;
-    background-color: rgba(17, 19, 23, 0.95);
-    backdrop-filter: blur(10px);
-    border-right: 1px solid rgba(255, 255, 255, 0.08);
-    z-index: 10;
-}
-
-.item-menu {
+.campo label,
+.rotulo-campo {
     display: block;
-    width: 100%;
-    padding: 14px 16px;
-    margin-bottom: 6px;
-    border: none;
-    background: transparent;
-    color: #9fa4b4;
-    text-align: left;
-    font-family: inherit;
-    font-size: 15px;
+    margin-bottom: 8px;
+    color: var(--cor-texto-2);
+    font-size: 13px;
     font-weight: 500;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: all 0.15s ease;
+    letter-spacing: 0.01em;
 }
 
-.item-menu:hover {
-    background-color: rgba(255, 255, 255, 0.05);
-    color: #ffffff;
-}
-
-.item-menu.ativo {
-    background-color: rgba(226, 160, 83, 0.15);
-    color: #e2a053;
-    font-weight: 600;
-}
-
-.item-menu-inicial {
-    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-    border-radius: 0;
-    margin-bottom: 16px;
-    padding-bottom: 16px;
-    color: #e2a053;
-}
-
-.botao-menu {
-    display: none;
-    background: transparent;
-    border: none;
-    color: #e2a053;
-    font-size: 24px;
-    cursor: pointer;
-}
-
-
-.conteudo {
-    margin-left: 250px;
-    padding: 40px;
-    height: calc(100vh - 70px);
-    display: flex !important;
-    flex-direction: column !important;
-    justify-content: center !important; 
-    align-items: center !important;     
-    text-align: center !important;
-}
-
-#conteudoAgenda,
-#conteudoEmBreve {
-    display: flex !important;
-    flex-direction: column !important;
-    align-items: center !important;
-    justify-content: center !important;
-    text-align: center !important;
-    width: 100% !important;
-    animation: fadeIn 0.4s ease;
-}
-
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-
-.conteudo h2 {
-    font-family: 'Montserrat', sans-serif;
-    font-size: 36px;
-    color: #ffffff;
-    margin-bottom: 12px;
-}
-
-#conteudoAgenda p,
-#conteudoEmBreve p {
-    color: #9fa4b4;
-    font-size: 16px;
-    max-width: 500px;
-    margin: 0 auto;
-    line-height: 1.5;
-}
-
-.icone-breve {
-    font-size: 56px;
-    color: #e2a053;
-    margin-bottom: 16px;
-}
-
-
-.loading {
-    display: flex !important;
-    flex-direction: column !important;
-    align-items: center !important;
-    justify-content: center !important;
-    text-align: center !important;
-    width: 100% !important;
-    margin-bottom: 20px;
-}
-
-.tela .loading {
-    display: flex !important;
-    flex-direction: column !important;
-    justify-content: center !important;
-    align-items: center !important;
-    min-height: 200px;
+/* Controles em pilula (Mercury) */
+/* Altura fixa: cada navegador calcula a altura de input, select e date de um
+   jeito (no iOS o campo de data ficava mais alto que os outros) */
+.campo input,
+.campo select {
     width: 100%;
-}
-.animacao-barbearia {
-    width: 260px;
-    height: 120px;
-    display: flex !important;
-    justify-content: center !important;
-    align-items: center !important;
-}
-
-.loading-corte {
-    position: relative !important;
-    width: 220px;
-    height: 100px;
-    display: flex !important;
-    justify-content: center !important;
-    align-items: center !important;
-}
-
-.tesoura-loading {
-    position: absolute !important;
-    left: 50% !important;
-    top: 50% !important;
-    font-size: 54px !important;
-    color: #e2a053 !important;
-    display: inline-block !important;
-    transform: translate(-50%, -50%) rotate(-12deg) !important;
-    animation: movimento-tesoura 0.7s ease-in-out infinite !important;
-}
-
-@keyframes movimento-tesoura {
-    0% { 
-        transform: translate(-50%, -50%) rotate(-12deg) !important; 
-    }
-    50% { 
-        transform: translate(-50%, -50%) rotate(12deg) !important; 
-    }
-    100% { 
-        transform: translate(-50%, -50%) rotate(-12deg) !important; 
-    }
-}
-
-.texto-loading {
-    margin-top: 16px;
-    color: #9fa4b4;
+    height: 48px;
+    padding: 13px 20px;
+    background-color: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--vidro-borda);
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.25);
+    border-radius: var(--raio-pilula);
+    color: var(--cor-texto);
+    font-family: var(--fonte-texto);
     font-size: 15px;
-    letter-spacing: 1px;
+    transition: border-color 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
 }
 
+.campo select {
+    appearance: none;
+    -webkit-appearance: none;
+    padding-right: 48px;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'><path d='M1 1.5l5 5 5-5' fill='none' stroke='%23c2c2c2' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/></svg>");
+    background-repeat: no-repeat;
+    background-position: right 20px center;
+    cursor: pointer;
+}
 
-@media (max-width: 768px) {
-    .botao-menu { 
-        display: block; 
-    }
-    .menu-navegacao {
-        transform: translateX(-100%);
-        transition: transform 0.3s ease;
-        z-index: 100;
-        box-shadow: 20px 0 40px rgba(0,0,0,0.5);
-    }
-    .menu-navegacao.aberto { 
-        transform: translateX(0); 
-    }
-    .conteudo { 
-        margin-left: 0; 
-        padding: 32px 20px; 
-    }
-    .caixa-login { 
-        padding: 32px 24px; 
-    }
-    .caixa-login h1 { 
-        font-size: 26px; 
-    }
-    .opcoes-menu-inicial { 
-        grid-template-columns: 1fr; 
-        gap: 16px; 
+.campo select option {
+    background-color: var(--cor-superficie);
+    color: var(--cor-texto);
+}
+
+/* Campo de data no iPhone (Safari/iOS): com a aparencia nativa ele ignora
+   width: 100%, ganha largura minima propria e vaza para fora do card.
+   Sem a aparencia nativa ele obedece ao layout como os outros campos. */
+.campo input[type="date"] {
+    -webkit-appearance: none;
+    appearance: none;
+    display: block;
+    min-width: 0;
+    max-width: 100%;
+}
+
+/* iOS centraliza a data escolhida e da altura extra ao valor: alinha a esquerda */
+.campo input[type="date"]::-webkit-date-and-time-value {
+    margin: 0;
+    min-height: 1.4em;
+    text-align: left;
+}
+
+/* So no iOS (que nao tem o icone de calendario do Chrome): icone proprio,
+   no mesmo estilo da seta dos selects, para o campo vazio nao parecer em branco */
+@supports (-webkit-touch-callout: none) {
+    .campo input[type="date"] {
+        padding-right: 48px;
+        background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16' fill='none' stroke='%23c2c2c2' stroke-width='1.4' stroke-linecap='round' stroke-linejoin='round'><rect x='2' y='3' width='12' height='11' rx='2'/><path d='M2 6.5h12M5.5 1.5v3M10.5 1.5v3'/></svg>");
+        background-repeat: no-repeat;
+        background-position: right 18px center;
     }
 }
 
+.campo input::placeholder {
+    color: var(--cor-texto-3);
+}
 
+.campo input:hover,
+.campo select:hover {
+    border-color: var(--cor-borda-forte);
+}
+
+.campo input:focus,
+.campo select:focus {
+    outline: none;
+    border-color: var(--cor-acento);
+    background-color: rgba(255, 255, 255, 0.06);
+    box-shadow: 0 0 0 3px rgba(226, 160, 83, 0.18);
+}
+
+.campo input[aria-invalid="true"] {
+    border-color: var(--cor-erro-forte);
+}
+
+.erro-campo,
+.feedback-senha {
+    margin-top: 6px;
+    padding-left: 20px;
+    font-size: 12.5px;
+}
 
 .erro-campo,
 .feedback-senha.erro {
-    color: #f87171;
-    font-size: 12px;
-    margin-top: 6px;
+    color: var(--cor-erro);
 }
 
 .feedback-senha.ok {
-    color: #4ade80;
-    font-size: 12px;
-    margin-top: 6px;
+    color: var(--cor-sucesso);
 }
-
 
 .senha-controle {
     position: relative;
@@ -589,34 +458,786 @@ body {
 }
 
 .senha-controle input {
-    padding-right: 48px;
+    padding-right: 52px;
 }
 
 .botao-olho {
     position: absolute;
     top: 50%;
-    right: 12px;
+    right: 8px;
     transform: translateY(-50%);
-    padding: 8px;
+    width: 38px;
+    height: 38px;
     border: 0;
+    border-radius: var(--raio-pilula);
     background: transparent;
-    color: #9fa4b4;
+    color: var(--cor-texto-3);
+    font-size: 15px;
     cursor: pointer;
+    transition: color 0.2s ease, background-color 0.2s ease;
+}
+
+.botao-olho:hover {
+    color: var(--cor-texto);
+    background-color: rgba(255, 255, 255, 0.06);
+}
+
+
+/* ============================================================
+   Botoes
+   ============================================================ */
+
+/* Principal: o unico botao preenchido, no acento ambar */
+.botao-principal {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    margin-top: 8px;
+    padding: 13px 22px;
+    border: 0;
+    border-radius: var(--raio-pilula);
+    background: var(--cor-acento);
+    color: var(--cor-sobre-acento);
+    font-family: var(--fonte-texto);
+    font-size: 15px;
+    font-weight: 600;
+    text-decoration: none;
+    cursor: pointer;
+    transition: background-color 0.2s ease, transform 0.2s var(--ease-saida);
+}
+
+.botao-principal:hover {
+    background: var(--cor-acento-hover);
+}
+
+.botao-principal:active {
+    transform: scale(0.98);
+}
+
+.botao-principal:disabled {
+    opacity: 0.55;
+    cursor: default;
+    transform: none;
+}
+
+/* Secundario: contorno fino em pilula (Mercury ghost) */
+.botao-secundario {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 9px 18px;
+    border: 1px solid var(--cor-borda-forte);
+    border-radius: var(--raio-pilula);
+    background: transparent;
+    color: var(--cor-texto);
+    font-family: var(--fonte-texto);
+    font-size: 14px;
+    font-weight: 500;
+    text-decoration: none;
+    cursor: pointer;
+    transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+
+.botao-secundario:hover {
+    background-color: rgba(255, 255, 255, 0.06);
+    border-color: rgba(255, 255, 255, 0.32);
+}
+
+.botao-secundario:disabled {
+    opacity: 0.5;
+    cursor: default;
+}
+
+.botao-perigo:hover {
+    color: var(--cor-erro);
+    border-color: rgba(248, 113, 113, 0.45);
+    background-color: var(--cor-erro-lavado);
+}
+
+.botao-logout {
+    padding: 8px 14px;
+    border: 0;
+    border-radius: var(--raio-pilula);
+    background: transparent;
+    color: var(--cor-texto-2);
+    font-family: var(--fonte-texto);
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.botao-logout:hover {
+    background-color: rgba(255, 255, 255, 0.06);
+    color: var(--cor-texto);
+}
+
+.logout-form {
+    margin: 0;
+}
+
+
+/* ============================================================
+   Mensagens
+   ============================================================ */
+.mensagem {
+    margin: 0 0 16px;
+    padding: 10px 16px;
+    border: 1px solid var(--cor-borda);
+    border-radius: var(--raio-ui);
+    background: rgba(255, 255, 255, 0.04);
+    color: var(--cor-texto-2);
+    font-size: 14px;
+}
+
+/* Templates usam as tags do Django ("mensagem error"); o JS tambem usa "erro"/"sucesso" */
+.mensagem.erro,
+.mensagem.error {
+    color: var(--cor-erro);
+    border-color: rgba(248, 113, 113, 0.3);
+    background: var(--cor-erro-lavado);
+}
+
+.mensagem.sucesso,
+.mensagem.success {
+    color: var(--cor-sucesso);
+    border-color: rgba(74, 222, 128, 0.3);
+    background: var(--cor-sucesso-lavado);
+}
+
+.mensagem.warning {
+    color: var(--cor-acento);
+    border-color: rgba(226, 160, 83, 0.3);
+    background: var(--cor-acento-lavado);
+}
+
+
+/* ============================================================
+   Barra de navegacao (base_app.html)
+   Pilula flutuante destacada da borda (Dimension). Transparente no topo
+   e com fundo + blur ao rolar (Mercury) - classe .rolado via menu.js.
+   ============================================================ */
+.nav-app {
+    position: fixed;
+    top: 16px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 50;
+    width: calc(100% - 32px);
+    max-width: 1100px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 8px 8px 8px 16px;
+    background-color: transparent;
+    border: 1px solid transparent;
+    border-radius: var(--raio-pilula);
+    transition: background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease,
+                backdrop-filter 0.3s ease, -webkit-backdrop-filter 0.3s ease;
+}
+
+.nav-app.rolado,
+.nav-app.aberto {
+    background-color: rgba(20, 20, 20, 0.45);
+    background-image: var(--vidro-fundo);
+    border-color: var(--vidro-borda);
+    backdrop-filter: var(--vidro-blur);
+    -webkit-backdrop-filter: var(--vidro-blur);
+    box-shadow: var(--vidro-reflexo), var(--vidro-sombra);
+}
+
+.nav-app-marca {
+    display: flex;
+    align-items: center;
+    padding: 4px 6px;
+    border-radius: var(--raio-ui);
+    text-decoration: none;
+}
+
+/* Bigode animado (SVG inline) */
+.bigode-nav {
+    display: block;
+    width: 52px;
+    height: auto;
+}
+
+/* Hover discreto: o bigode ganha o acento da marca */
+.nav-app-marca .svg-tinta {
+    transition: fill 0.25s ease;
+}
+
+.nav-app-marca:hover .svg-tinta {
+    fill: var(--cor-acento);
+}
+
+.nav-app-links {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+}
+
+.nav-app-link,
+.nav-app-entrar {
+    padding: 8px 14px;
+    border-radius: var(--raio-pilula);
+    color: var(--cor-texto-2);
+    font-size: 14px;
+    font-weight: 500;
+    text-decoration: none;
+    white-space: nowrap;
+    transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.nav-app-link:hover {
+    background-color: rgba(255, 255, 255, 0.06);
+    color: var(--cor-texto);
+}
+
+.nav-app-link.ativo {
+    background-color: var(--cor-acento-lavado);
+    color: var(--cor-acento);
+}
+
+.nav-app-entrar {
+    background: var(--cor-acento);
+    color: var(--cor-sobre-acento);
+    font-weight: 600;
+}
+
+.nav-app .logout-form {
+    margin-left: 6px;
+    padding-left: 8px;
+    border-left: 1px solid var(--cor-borda);
+}
+
+.nav-app-alternar {
+    display: none;
+    width: 40px;
+    height: 40px;
+    border: 0;
+    border-radius: var(--raio-pilula);
+    background: transparent;
+    color: var(--cor-texto);
+    font-size: 17px;
+    cursor: pointer;
+}
+
+@media (max-width: 860px) {
+    .nav-app {
+        flex-wrap: wrap;
+        border-radius: 22px;
+    }
+
+    .nav-app-alternar {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .nav-app-links {
+        display: none;
+        width: 100%;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 2px;
+        padding: 8px 0 4px;
+        border-top: 1px solid var(--cor-borda);
+    }
+
+    .nav-app.aberto .nav-app-links {
+        display: flex;
+    }
+
+    .nav-app-link,
+    .nav-app-entrar {
+        padding: 12px 14px;
+        border-radius: var(--raio-ui);
+    }
+
+    .nav-app .logout-form {
+        margin: 6px 0 0;
+        padding: 8px 0 0;
+        border-left: 0;
+        border-top: 1px solid var(--cor-borda);
+    }
+
+    .nav-app .botao-logout {
+        width: 100%;
+        padding: 12px 14px;
+        border-radius: var(--raio-ui);
+        text-align: left;
+    }
+}
+
+
+/* ============================================================
+   Paginas internas
+   ============================================================ */
+.pagina {
+    width: 100%;
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 120px 16px 80px;
+}
+
+.pagina-cabecalho {
+    margin-bottom: 32px;
+    animation: subir 0.7s var(--ease-saida) backwards;
+}
+
+/* Textos que ficam direto sobre a foto (fora do vidro): sombra suave
+   para manter a leitura quando passam por cima de areas claras da imagem */
+.pagina-cabecalho,
+.grupo-agendamentos h2 {
+    text-shadow: 0 2px 18px rgba(0, 0, 0, 0.75), 0 1px 3px rgba(0, 0, 0, 0.5);
+}
+
+/* Titulo grande em peso 500 com espacamento apertado (Dimension) */
+.pagina-cabecalho h1 {
+    font-family: var(--fonte-texto);
+    font-size: clamp(32px, 6vw, 48px);
+    font-weight: 500;
+    line-height: 1.05;
+    letter-spacing: -0.035em;
+    color: var(--cor-titulo);
+}
+
+/* Titulo em dois tons (Ponder): segunda frase no mesmo tamanho, em cinza */
+.titulo-apoio {
+    display: block;
+    color: var(--cor-texto-3);
+}
+
+.pagina-subtitulo {
+    margin-top: 10px;
+    color: var(--cor-texto-2);
     font-size: 16px;
 }
 
-.botao-olho:hover,
-.botao-olho:focus-visible {
-    color: #e2a053;
+/* Glassmorphism: card de vidro (fundo translucido, blur forte, borda clara,
+   reflexo de luz na borda de cima e sombra suave para profundidade) */
+.painel,
+.lista-agendamentos,
+.noticia,
+.opcao-menu-inicial {
+    background: var(--vidro-fundo);
+    backdrop-filter: var(--vidro-blur);
+    -webkit-backdrop-filter: var(--vidro-blur);
+    border: 1px solid var(--vidro-borda);
+    border-radius: var(--raio-card);
+    box-shadow: var(--vidro-reflexo), var(--vidro-sombra);
 }
 
-.botao-olho:focus-visible {
-    outline: 2px solid #e2a053;
-    outline-offset: 2px;
-    border-radius: 4px;
+.painel {
+    padding: 28px;
+    animation: subir 0.7s var(--ease-saida) 0.08s backwards;
+}
+
+.painel + .painel,
+.painel + .grupo-agendamentos {
+    margin-top: 32px;
+}
+
+.estado-vazio {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+    padding: 40px 28px;
+    text-align: center;
+    color: var(--cor-texto-2);
+}
+
+.estado-vazio-icone {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: var(--cor-acento-lavado);
+    color: var(--cor-acento);
+    font-size: 20px;
+}
+
+.estado-vazio .botao-principal {
+    width: auto;
+    margin-top: 4px;
 }
 
 
+/* ============================================================
+   Menu inicial (home.html) - cards numerados (indice estilo Dimension)
+   ============================================================ */
+.opcoes-menu-inicial {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+}
+
+/* Numero impar de opcoes (profissional tem 3): a ultima ocupa a linha toda */
+.opcao-menu-inicial:last-child:nth-child(odd) {
+    grid-column: 1 / -1;
+}
+
+.opcao-menu-inicial {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+    min-height: 184px;
+    padding: 24px 24px 56px;
+    color: var(--cor-texto);
+    text-decoration: none;
+    transition: transform 0.35s var(--ease-saida), background 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+    animation: subir 0.7s var(--ease-saida) backwards;
+}
+
+.opcao-menu-inicial:nth-child(1) { animation-delay: 0.06s; }
+.opcao-menu-inicial:nth-child(2) { animation-delay: 0.12s; }
+.opcao-menu-inicial:nth-child(3) { animation-delay: 0.18s; }
+.opcao-menu-inicial:nth-child(4) { animation-delay: 0.24s; }
+
+.opcao-menu-inicial:hover {
+    transform: translateY(-3px);
+    background: var(--vidro-fundo-hover);
+    border-color: rgba(226, 160, 83, 0.5);
+    box-shadow: var(--vidro-reflexo), 0 16px 48px -10px rgba(0, 0, 0, 0.6), 0 0 32px -12px rgba(226, 160, 83, 0.35);
+}
+
+.opcao-topo {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    width: 100%;
+    margin-bottom: 18px;
+}
+
+.icone-menu-inicial {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    border-radius: var(--raio-ui);
+    background-color: rgba(255, 255, 255, 0.07);
+    border: 1px solid var(--vidro-borda);
+    box-shadow: var(--vidro-reflexo);
+    color: var(--cor-acento);
+    font-size: 18px;
+    transition: background-color 0.25s ease, color 0.25s ease;
+}
+
+.opcao-menu-inicial:hover .icone-menu-inicial {
+    background-color: var(--cor-acento);
+    color: var(--cor-sobre-acento);
+}
+
+.opcao-indice {
+    color: var(--cor-texto-3);
+    font-family: var(--fonte-titulo);
+    font-size: 13px;
+    font-variant-numeric: tabular-nums;
+}
+
+.opcao-titulo {
+    color: var(--cor-titulo);
+    font-family: var(--fonte-titulo);
+    font-size: 18px;
+    font-weight: 500;
+}
+
+.opcao-descricao {
+    color: var(--cor-texto-2);
+    font-size: 14px;
+}
+
+.opcao-seta {
+    position: absolute;
+    right: 24px;
+    bottom: 22px;
+    color: var(--cor-texto-3);
+    font-size: 14px;
+    transition: transform 0.35s var(--ease-saida), color 0.25s ease;
+}
+
+.opcao-menu-inicial:hover .opcao-seta {
+    transform: translateX(4px);
+    color: var(--cor-acento);
+}
+
+
+/* ============================================================
+   Agendamentos (listas do cliente e do profissional)
+   ============================================================ */
+.grupo-agendamentos {
+    margin-top: 32px;
+    animation: subir 0.7s var(--ease-saida) 0.1s backwards;
+}
+
+.pagina-cabecalho + .grupo-agendamentos {
+    margin-top: 0;
+}
+
+.grupo-agendamentos h2 {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 12px;
+    color: var(--cor-texto);
+    font-family: var(--fonte-titulo);
+    font-size: 16px;
+    font-weight: 500;
+}
+
+.grupo-contagem {
+    min-width: 24px;
+    padding: 1px 9px;
+    border-radius: var(--raio-pilula);
+    background: rgba(255, 255, 255, 0.08);
+    color: var(--cor-texto-2);
+    font-size: 12px;
+    font-weight: 500;
+    text-align: center;
+}
+
+/* Um card por grupo; os itens sao linhas separadas por borda fina */
+.agendamento-item {
+    padding: 20px 24px;
+}
+
+.agendamento-item + .agendamento-item {
+    border-top: 1px solid var(--cor-borda);
+}
+
+.grupo-agendamentos.cancelados .agendamento-item {
+    opacity: 0.7;
+}
+
+.agendamento-topo {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.agendamento-servico {
+    color: var(--cor-titulo);
+    font-family: var(--fonte-titulo);
+    font-size: 17px;
+    font-weight: 500;
+}
+
+.agendamento-detalhes {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 12px 20px;
+    margin-top: 14px;
+}
+
+.agendamento-detalhes dt {
+    margin-bottom: 2px;
+    color: var(--cor-texto-3);
+    font-size: 12px;
+}
+
+.agendamento-detalhes dd {
+    color: var(--cor-texto);
+    font-size: 14px;
+}
+
+.agendamento-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 16px;
+}
+
+.cupom-aplicado {
+    margin-top: 12px;
+    color: var(--cor-acento);
+    font-size: 13px;
+    font-weight: 500;
+}
+
+/* Etiquetas de status com fundo lavado (Tomorro) */
+.etiqueta-status,
+.status-indicator {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 4px 12px;
+    border-radius: var(--raio-pilula);
+    background: rgba(255, 255, 255, 0.08);
+    color: var(--cor-texto-2);
+    font-size: 12px;
+    font-weight: 500;
+    white-space: nowrap;
+}
+
+.etiqueta-status::before,
+.status-indicator::before {
+    content: "";
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: currentColor;
+}
+
+.status-agendado {
+    background: var(--cor-acento-lavado);
+    color: #f0bd7e;
+}
+
+.status-confirmado,
+.status-indicator.aberta {
+    background: var(--cor-sucesso-lavado);
+    color: var(--cor-sucesso);
+}
+
+.status-cancelado,
+.status-indicator.fechada {
+    background: var(--cor-erro-lavado);
+    color: var(--cor-erro);
+}
+
+/* Status da agenda do profissional (gerenciar_agenda.html) */
+.configuracoes {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+.configuracoes-texto {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+}
+
+.configuracoes .rotulo-campo {
+    margin-bottom: 0;
+}
+
+.toggle-agenda .botao-principal,
+.toggle-agenda .botao-secundario {
+    width: auto;
+    margin-top: 0;
+    padding: 11px 22px;
+}
+
+
+/* ============================================================
+   Noticias / promocao
+   ============================================================ */
+.noticia {
+    padding: 28px;
+    animation: subir 0.7s var(--ease-saida) 0.08s backwards;
+}
+
+/* Etiqueta tipo "tag" da Tomorro */
+.noticia-selo {
+    display: inline-flex;
+    padding: 4px 12px;
+    border-radius: var(--raio-pilula);
+    background: var(--cor-acento-lavado);
+    color: var(--cor-acento);
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.noticia h2 {
+    margin: 14px 0 8px;
+    color: var(--cor-titulo);
+    font-family: var(--fonte-texto);
+    font-size: clamp(22px, 4vw, 28px);
+    font-weight: 500;
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+}
+
+.noticia p {
+    color: var(--cor-texto-2);
+    font-size: 15px;
+}
+
+.noticia .botao-principal {
+    width: auto;
+}
+
+.botao-cupom {
+    margin-top: 20px;
+}
+
+.noticia .noticia-rotulo {
+    margin-top: 20px;
+    color: var(--cor-texto-2);
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.noticia-codigo {
+    margin-top: 8px;
+    padding: 16px;
+    border: 1px dashed rgba(226, 160, 83, 0.6);
+    border-radius: var(--raio-ui);
+    background: var(--cor-acento-lavado);
+    color: var(--cor-acento);
+    font-family: var(--fonte-titulo);
+    font-size: 22px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-align: center;
+    user-select: all;
+}
+
+.noticia .noticia-aviso {
+    margin-top: 20px;
+    padding: 12px 16px;
+    border-radius: var(--raio-ui);
+    background: rgba(255, 255, 255, 0.04);
+    font-size: 14px;
+}
+
+.botao-copiar {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    margin-top: 10px;
+    padding: 11px;
+    border: 1px solid var(--cor-borda-forte);
+    border-radius: var(--raio-pilula);
+    background: transparent;
+    color: var(--cor-texto);
+    font-family: var(--fonte-texto);
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.botao-copiar:hover {
+    background-color: rgba(255, 255, 255, 0.06);
+    border-color: rgba(255, 255, 255, 0.32);
+}
+
+.area-cupom.cupom-revelado {
+    animation: subir 0.4s var(--ease-saida);
+}
+
+
+/* ============================================================
+   Dialogo de confirmacao (criado pelo menu.js)
+   ============================================================ */
 .confirmacao-dialog {
     position: fixed;
     top: 50%;
@@ -624,40 +1245,55 @@ body {
     transform: translate(-50%, -50%);
     margin: 0;
     width: min(92vw, 440px);
-    max-width: 440px;
     padding: 28px;
-    border: 1px solid rgba(255, 255, 255, 0.12);
-    border-radius: 16px;
-    background: rgba(21, 23, 28, 0.82);
-    color: #e2e8f0;
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid var(--vidro-borda);
+    border-radius: var(--raio-card);
+    background: var(--vidro-fundo-escuro);
+    backdrop-filter: var(--vidro-blur);
+    -webkit-backdrop-filter: var(--vidro-blur);
+    box-shadow: var(--vidro-reflexo), var(--vidro-sombra);
+    color: var(--cor-texto);
 }
 
 .confirmacao-dialog::backdrop {
-    background: rgba(11, 12, 14, 0.72);
+    background: rgba(10, 10, 10, 0.7);
     backdrop-filter: blur(4px);
     -webkit-backdrop-filter: blur(4px);
 }
 
 .confirmacao-dialog h2 {
-    margin: 0 0 12px;
-    color: #e2a053;
-    font-family: 'Montserrat', sans-serif;
+    margin-bottom: 10px;
+    color: var(--cor-titulo);
+    font-family: var(--fonte-titulo);
     font-size: 20px;
+    font-weight: 500;
 }
 
 .confirmacao-dialog p {
-    color: #c4c9d4;
+    color: var(--cor-texto-2);
     font-size: 15px;
-    line-height: 1.5;
+}
+
+.confirmacao-opcao {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 18px;
+    color: var(--cor-texto);
+    font-size: 14px;
+    cursor: pointer;
+}
+
+.confirmacao-opcao input {
+    width: 18px;
+    height: 18px;
+    accent-color: var(--cor-acento);
 }
 
 .confirmacao-acoes {
     display: flex;
     justify-content: flex-end;
-    gap: 12px;
+    gap: 10px;
     margin-top: 24px;
 }
 
@@ -665,13 +1301,443 @@ body {
 .confirmacao-acoes .botao-secundario {
     width: auto;
     margin-top: 0;
+    padding: 10px 20px;
 }
 
-.confirmacao-acoes .botao-principal {
-    padding: 10px 22px;
+
+/* ============================================================
+   Notificacoes (toasts)
+   ============================================================ */
+/* --toast-atraso: espera antes de entrar (a abertura da marca aumenta).
+   O tempo na tela e a duracao da barra de progresso: quando ela termina,
+   o menu.js fecha o toast. Mouse ou foco em cima pausam a barra. */
+.toast-area {
+    --toast-atraso: 0.15s;
+    position: fixed;
+    top: 24px;
+    right: 24px;
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 10px;
+    pointer-events: none;
 }
 
-@media (max-width: 420px) {
+/* Telas internas: logo abaixo da barra, alinhado com a borda direita dela */
+.layout-app .toast-area {
+    top: 84px;
+    right: max(16px, calc((100vw - 1100px) / 2));
+}
+
+.toast {
+    --toast-duracao: 6s;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 300px;
+    max-width: min(400px, calc(100vw - 32px));
+    padding: 10px 10px 10px 12px;
+    border: 1px solid var(--vidro-borda);
+    border-radius: 18px;
+    background: var(--vidro-fundo-escuro);
+    backdrop-filter: var(--vidro-blur);
+    -webkit-backdrop-filter: var(--vidro-blur);
+    box-shadow: var(--vidro-reflexo), var(--vidro-sombra);
+    color: var(--cor-texto);
+    font-size: 14px;
+    font-weight: 500;
+    pointer-events: auto;
+    animation: toast-entrada 0.6s var(--ease-morph) var(--toast-atraso) both;
+}
+
+/* Icone em circulo lavado, como as etiquetas de status */
+.toast-icone {
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: var(--cor-sucesso-lavado);
+    color: var(--cor-sucesso);
+    font-size: 13px;
+    animation: toast-icone 0.5s var(--ease-saida) calc(var(--toast-atraso) + 0.2s) both;
+}
+
+.toast-error .toast-icone,
+.toast-warning .toast-icone {
+    background: var(--cor-erro-lavado);
+    color: var(--cor-erro);
+}
+
+.toast-texto {
+    flex: 1;
+    line-height: 1.4;
+}
+
+/* Fechar: botao redondo discreto, no padrao do botao de mostrar senha */
+.toast-fechar {
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    border: 0;
+    border-radius: 50%;
+    background: transparent;
+    color: var(--cor-texto-3);
+    font-size: 14px;
+    cursor: pointer;
+    transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.toast-fechar:hover {
+    background-color: rgba(255, 255, 255, 0.08);
+    color: var(--cor-texto);
+}
+
+/* Barra fina no rodape, recuada das bordas arredondadas */
+.toast-progresso {
+    position: absolute;
+    left: 14px;
+    right: 14px;
+    bottom: 0;
+    height: 2px;
+    border-radius: var(--raio-pilula);
+    background: var(--cor-acento);
+    opacity: 0.55;
+    transform-origin: left;
+    animation: toast-progresso var(--toast-duracao) linear var(--toast-atraso) both;
+}
+
+.toast:hover .toast-progresso,
+.toast:focus-within .toast-progresso {
+    animation-play-state: paused;
+}
+
+.toast.saindo {
+    pointer-events: none;
+    animation: toast-saida 0.4s var(--ease-saida) forwards;
+}
+
+
+/* ============================================================
+   Carregamento (overlay de login/cadastro)
+   ============================================================ */
+.overlay-carregando {
+    position: fixed;
+    inset: 0;
+    z-index: 999;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: rgba(10, 10, 10, 0.9);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+}
+
+.overlay-carregando[hidden] {
+    display: none;
+}
+
+.animacao-barbearia {
+    width: 260px;
+    height: 120px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.loading-corte {
+    position: relative;
+    width: 220px;
+    height: 100px;
+}
+
+.tesoura-loading {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    display: inline-block;
+    color: var(--cor-acento);
+    font-size: 54px;
+    transform: translate(-50%, -50%) rotate(-12deg);
+    animation: movimento-tesoura 0.7s ease-in-out infinite;
+}
+
+.texto-loading {
+    margin-top: 16px;
+    color: var(--cor-texto-2);
+    font-size: 15px;
+    letter-spacing: 0.02em;
+}
+
+
+/* ============================================================
+   Animacoes
+   ============================================================ */
+
+/* Entrada suave de baixo para cima. Usada com fill-mode "backwards",
+   para nao travar o transform depois que a animacao termina (hover). */
+@keyframes subir {
+    from { opacity: 0; transform: translateY(12px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes movimento-tesoura {
+    0%, 100% { transform: translate(-50%, -50%) rotate(-12deg); }
+    50%      { transform: translate(-50%, -50%) rotate(12deg); }
+}
+
+/* Toast: desce da barra e assenta; sai deslizando para a direita.
+   So opacity/transform (filter quebraria o backdrop-filter do vidro). */
+@keyframes toast-entrada {
+    from { opacity: 0; transform: translateY(-12px) scale(0.96); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes toast-saida {
+    from { opacity: 1; transform: translateX(0) scale(1); }
+    to   { opacity: 0; transform: translateX(24px) scale(0.97); }
+}
+
+@keyframes toast-icone {
+    from { opacity: 0; transform: scale(0.5); }
+    to   { opacity: 1; transform: scale(1); }
+}
+
+@keyframes toast-progresso {
+    from { transform: scaleX(1); }
+    to   { transform: scaleX(0); }
+}
+
+@keyframes surgir {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+}
+
+
+/* ------------------------------------------------------------
+   Abertura da marca (Jason Bradley): so na primeira home apos o login.
+   0s     tela preta; o bigode do logo se abre do centro para os lados,
+          depois "barberhouse" sobe e o slogan aparece
+   0.75s  o logo some e a foto se abre do centro para as bordas
+          (o mesmo gesto do bigode, em escala maior)
+   1.0s   barra, titulo e cards entram em sequencia
+   ------------------------------------------------------------ */
+.abertura-marca {
+    position: fixed;
+    inset: 0;
+    z-index: 60;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    pointer-events: none;
+    animation: abertura-marca 1.2s ease forwards;
+}
+
+.abertura-marca .logo-bigode {
+    animation: revelar-foto 0.6s var(--ease-morph) 0.05s backwards;
+}
+
+.abertura-marca .logo-nome {
+    animation: subir 0.55s var(--ease-saida) 0.2s backwards;
+}
+
+.abertura-marca .logo-slogan {
+    animation: surgir 0.5s ease 0.32s backwards;
+}
+
+body.com-abertura::before,
+body.com-abertura::after {
+    animation: revelar-foto 0.9s var(--ease-morph) 0.75s backwards;
+}
+
+.com-abertura .nav-app {
+    animation: surgir 0.6s ease 1s backwards;
+}
+
+.com-abertura .home-marca { animation-delay: 1s; }
+.com-abertura .pagina-cabecalho { animation-delay: 1.06s; }
+.com-abertura .opcao-menu-inicial:nth-child(1) { animation-delay: 1.1s; }
+.com-abertura .opcao-menu-inicial:nth-child(2) { animation-delay: 1.16s; }
+.com-abertura .opcao-menu-inicial:nth-child(3) { animation-delay: 1.22s; }
+.com-abertura .opcao-menu-inicial:nth-child(4) { animation-delay: 1.28s; }
+.com-abertura .toast-area { --toast-atraso: 1.45s; }
+
+@keyframes abertura-marca {
+    0%   { opacity: 1; transform: scale(1); }
+    62%  { opacity: 1; transform: scale(1); }
+    100% { opacity: 0; transform: scale(0.97); visibility: hidden; }
+}
+
+@keyframes revelar-foto {
+    from { clip-path: inset(0 50% 0 50%); }
+    to   { clip-path: inset(0 0 0 0); }
+}
+
+
+/* ------------------------------------------------------------
+   Transicao entre paginas (View Transitions entre documentos).
+   Chrome, Edge e Safari animam; no Firefox a pagina so troca.
+   - A barra fica parada (nome proprio).
+   - O cabecalho de uma pagina vira o da proxima; na home, o card
+     clicado recebe esse nome no lugar do cabecalho (menu.js).
+   - O resto esmaece com um leve deslize.
+   ------------------------------------------------------------ */
+@media (prefers-reduced-motion: no-preference) {
+    @view-transition {
+        navigation: auto;
+    }
+}
+
+.nav-app {
+    view-transition-name: nav-app;
+}
+
+.pagina-cabecalho {
+    view-transition-name: cabecalho-pagina;
+}
+
+/* Chegando por transicao, o cabecalho ja vem do morph: sem a entrada "subir".
+   Exceto na abertura da marca, que precisa esconder o titulo ate a foto abrir. */
+.vt-chegada body:not(.com-abertura) .pagina-cabecalho {
+    animation: none;
+}
+
+::view-transition-group(cabecalho-pagina) {
+    animation-duration: 0.55s;
+    animation-timing-function: var(--ease-morph);
+}
+
+/* Sem esticar o texto: cada imagem fica no tamanho natural, presa no canto */
+::view-transition-old(cabecalho-pagina),
+::view-transition-new(cabecalho-pagina) {
+    height: 100%;
+    object-fit: none;
+    object-position: left top;
+}
+
+::view-transition-old(cabecalho-pagina) {
+    animation: vt-sair 0.25s ease both;
+}
+
+::view-transition-new(cabecalho-pagina) {
+    animation: vt-entrar-cabecalho 0.4s ease 0.12s both;
+}
+
+::view-transition-old(root) {
+    animation: vt-sair 0.25s ease both;
+}
+
+::view-transition-new(root) {
+    animation: vt-entrar 0.45s var(--ease-saida) 0.05s both;
+}
+
+@keyframes vt-sair {
+    to { opacity: 0; }
+}
+
+@keyframes vt-entrar {
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes vt-entrar-cabecalho {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+}
+
+/* Quem pediu "reduzir movimento" no sistema ve tudo no estado final, sem animacao */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        animation-delay: 0s !important;
+        transition-duration: 0.01ms !important;
+    }
+
+    .opcao-menu-inicial:hover,
+    .botao-principal:active {
+        transform: none;
+    }
+
+    /* A barra do toast marca o tempo de leitura (o toast fecha quando ela acaba):
+       mantem os 6s, sem atraso de entrada */
+    .toast .toast-progresso {
+        animation-duration: var(--toast-duracao) !important;
+    }
+}
+
+
+/* ============================================================
+   Telas pequenas
+   ============================================================ */
+@media (max-width: 600px) {
+    .caixa-login {
+        padding: 28px 22px;
+    }
+
+    .logo-auth {
+        font-size: 22px;
+    }
+
+    /* iPhone: com fonte menor que 16px o Safari da zoom na pagina ao tocar no campo */
+    .campo input,
+    .campo select {
+        font-size: 16px;
+    }
+
+    .marca-auth {
+        margin-bottom: 26px;
+    }
+
+    .pagina {
+        padding-top: 104px;
+    }
+
+    .opcoes-menu-inicial {
+        grid-template-columns: 1fr;
+    }
+
+    .opcao-menu-inicial {
+        min-height: 0;
+    }
+
+    .painel,
+    .noticia {
+        padding: 22px;
+    }
+
+    .agendamento-item {
+        padding: 18px;
+    }
+
+    .toast-area {
+        top: 16px;
+        right: 16px;
+        left: 16px;
+        align-items: stretch;
+    }
+
+    .layout-app .toast-area {
+        top: 80px;
+    }
+
+    .toast {
+        min-width: 0;
+        max-width: none;
+    }
+
     .confirmacao-dialog {
         padding: 24px 20px;
     }
@@ -683,312 +1749,5 @@ body {
     .confirmacao-acoes .botao-principal,
     .confirmacao-acoes .botao-secundario {
         width: 100%;
-        text-align: center;
     }
-}
-
-
-.grupo-agendamentos {
-    width: 100%;
-    margin-top: 20px;
-    padding: 18px;
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    border-radius: 14px;
-    background: rgba(15, 17, 21, 0.48);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    text-align: left;
-}
-
-.grupo-agendamentos h2 {
-    margin-bottom: 14px;
-    color: #e2a053;
-    font-family: 'Montserrat', sans-serif;
-    font-size: 18px;
-}
-
-.grupo-agendamentos.concluidos h2,
-.grupo-agendamentos.cancelados h2 {
-    color: #9fa4b4;
-}
-
-.grupo-agendamentos.cancelados {
-    background: rgba(15, 17, 21, 0.34);
-}
-
-.agendamento-item {
-    display: flex;
-    flex-direction: column;
-    gap: 14px;
-    margin-top: 12px;
-    padding: 16px;
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    border-radius: 12px;
-    background: rgba(21, 23, 28, 0.66);
-}
-
-.grupo-agendamentos.cancelados .agendamento-item {
-    opacity: 0.82;
-}
-
-.agendamento-info {
-    display: flex;
-    flex-direction: column;
-    gap: 7px;
-    color: #c4c9d4;
-    font-size: 14px;
-}
-
-.agendamento-info h3,
-.agendamento-info .servico {
-    color: #ffffff;
-    font-size: 16px;
-    font-weight: 700;
-}
-
-.agendamento-info strong {
-    color: #9fa4b4;
-}
-
-.agendamento-actions {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-}
-
-.agendamento-actions .botao-secundario {
-    padding: 8px 14px;
-}
-
-
-/* Toast de notificação (canto superior direito) */
-.toast-area {
-    position: fixed;
-    top: 24px;
-    right: 24px;
-    z-index: 1000;
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    pointer-events: none;
-}
-
-.toast {
-    --toast-duracao: 7s;
-    position: relative;
-    overflow: hidden;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    min-width: 280px;
-    max-width: min(380px, calc(100vw - 32px));
-    padding: 16px 20px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-left: 3px solid #e2a053;
-    border-radius: 14px;
-    background: rgba(21, 23, 28, 0.72);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    box-shadow: 0 20px 40px -12px rgba(0, 0, 0, 0.6);
-    color: #e2e8f0;
-    font-family: 'Inter', sans-serif;
-    font-size: 14px;
-    font-weight: 500;
-    pointer-events: auto;
-    animation: toast-entrada 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
-}
-
-.toast-icone {
-    font-size: 20px;
-    color: #4ade80;
-    flex-shrink: 0;
-}
-
-.toast-error .toast-icone {
-    color: #f87171;
-}
-
-.toast-texto {
-    line-height: 1.4;
-}
-
-.toast-progresso {
-    position: absolute;
-    left: 0;
-    bottom: 0;
-    height: 2px;
-    width: 100%;
-    background: #e2a053;
-    opacity: 0.7;
-    transform-origin: left;
-    animation: toast-progresso var(--toast-duracao) linear forwards;
-}
-
-.toast.saindo {
-    animation: toast-saida 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
-}
-
-@keyframes toast-entrada {
-    from { opacity: 0; transform: translateX(40px) scale(0.96); filter: blur(4px); }
-    to   { opacity: 1; transform: translateX(0) scale(1); filter: blur(0); }
-}
-
-@keyframes toast-saida {
-    from { opacity: 1; transform: translateX(0) scale(1); filter: blur(0); }
-    to   { opacity: 0; transform: translateX(40px) scale(0.96); filter: blur(4px); }
-}
-
-@keyframes toast-progresso {
-    from { transform: scaleX(1); }
-    to   { transform: scaleX(0); }
-}
-
-@media (max-width: 480px) {
-    .toast-area {
-        top: 16px;
-        right: 16px;
-        left: 16px;
-    }
-
-    .toast {
-        min-width: 0;
-        max-width: none;
-    }
-}
-
-@media (prefers-reduced-motion: reduce) {
-    .toast,
-    .toast.saindo {
-        animation-duration: 0.01s;
-    }
-}
-
-
-/* Notícias / promoção */
-.noticia {
-    margin-top: 8px;
-    padding: 22px 20px;
-    text-align: left;
-    background: rgba(255, 255, 255, 0.04);
-    border: 1px solid rgba(226, 160, 83, 0.35);
-    border-radius: 12px;
-}
-
-.noticia-selo {
-    display: inline-block;
-    margin-bottom: 10px;
-    padding: 3px 10px;
-    border-radius: 999px;
-    background: #e2a053;
-    color: #0b0c0e;
-    font-size: 11px;
-    font-weight: 700;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-}
-
-.noticia h2 {
-    margin-bottom: 8px;
-    font-family: 'Montserrat', sans-serif;
-    font-size: 20px;
-    color: #ffffff;
-}
-
-.noticia p {
-    color: #c3c8d6;
-    font-size: 14px;
-    line-height: 1.5;
-}
-
-.noticia-rotulo {
-    margin-top: 16px;
-    font-size: 12px !important;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    color: #9fa4b4 !important;
-}
-
-.noticia-codigo {
-    margin-top: 6px;
-    padding: 14px;
-    text-align: center;
-    border: 2px dashed #e2a053;
-    border-radius: 10px;
-    font-family: 'Montserrat', sans-serif;
-    font-size: 22px;
-    font-weight: 800;
-    letter-spacing: 0.06em;
-    color: #e2a053;
-    user-select: all;
-}
-
-.noticia-aviso {
-    margin-top: 16px;
-    padding: 12px;
-    border-radius: 8px;
-    background: rgba(255, 255, 255, 0.05);
-}
-
-.botao-cupom {
-    margin-top: 16px;
-}
-
-.area-cupom.cupom-revelado {
-    animation: cupom-aparece 0.35s ease;
-}
-
-.botao-copiar {
-    width: 100%;
-    margin-top: 10px;
-    padding: 10px;
-    border: 1px solid rgba(226, 160, 83, 0.5);
-    border-radius: 10px;
-    background: transparent;
-    color: #e2a053;
-    font-family: 'Inter', sans-serif;
-    font-size: 14px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: background 0.2s ease;
-}
-
-.botao-copiar:hover {
-    background: rgba(226, 160, 83, 0.12);
-}
-
-@keyframes cupom-aparece {
-    from { opacity: 0; transform: translateY(6px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-
-@media (prefers-reduced-motion: reduce) {
-    .area-cupom.cupom-revelado { animation: none; }
-}
-
-.confirmacao-opcao {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin: 0 0 18px;
-    text-align: left;
-    font-size: 14px;
-    color: #e2e8f0;
-    cursor: pointer;
-}
-
-.confirmacao-opcao input {
-    width: 18px;
-    height: 18px;
-    accent-color: #e2a053;
-}
-
-.cupom-aplicado {
-    color: #e2a053;
-    font-size: 13px;
-    font-weight: 600;
-}
-
-.botao-cupom:disabled {
-    opacity: 0.7;
-    cursor: default;
 }

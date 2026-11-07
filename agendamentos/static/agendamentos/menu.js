@@ -8,7 +8,7 @@ function abrirDialogo(mensagem, opcoes = {}) {
 
         const titulo = document.createElement("h2");
         titulo.id = "tituloConfirmacao";
-        titulo.textContent = opcoes.titulo || "Estamos quase l\u00e1";
+        titulo.textContent = opcoes.titulo || "Estamos quase lá";
 
         const texto = document.createElement("p");
         texto.id = "mensagemConfirmacao";
@@ -64,15 +64,13 @@ function confirmarAcao(mensagem) {
     return abrirDialogo(mensagem).then(resultado => resultado.aceito);
 }
 
-// Helper function to get cookie value by name
-// FIXED: Added getCookie for CSRF token in status update buttons
+// Le um cookie pelo nome (usado para enviar o token CSRF nas requisicoes)
 function getCookie(name) {
     let cookieValue = null;
     if (document.cookie && document.cookie !== '') {
         const cookies = document.cookie.split(';');
         for (let i = 0; i < cookies.length; i++) {
             const cookie = cookies[i].trim();
-            // Does this cookie string begin with the name we want?
             if (cookie.substring(0, name.length + 1) === (name + '=')) {
                 cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
                 break;
@@ -82,88 +80,191 @@ function getCookie(name) {
     return cookieValue;
 }
 
+// SVGs do logo (.svg-animado) usam animacao SMIL, que o CSS de "reduzir
+// movimento" nao alcanca: para essas pessoas, congela o bigode na posicao de repouso.
+const reduzirMovimento = window.matchMedia('(prefers-reduced-motion: reduce)');
+
+function ajustarSvgsAnimados() {
+    document.querySelectorAll('svg.svg-animado').forEach(svg => {
+        if (typeof svg.pauseAnimations !== 'function') return;
+        if (reduzirMovimento.matches) {
+            svg.pauseAnimations();
+            svg.setCurrentTime(0);
+        } else {
+            svg.unpauseAnimations();
+        }
+    });
+}
+
+document.addEventListener('DOMContentLoaded', ajustarSvgsAnimados);
+reduzirMovimento.addEventListener('change', ajustarSvgsAnimados);
+
+// Transicao entre paginas (View Transitions, ver barbearia.css).
+// Quando a pagina chega por transicao, marca o <html> para o cabecalho
+// nao repetir a animacao de entrada (ele ja vem do morph).
+window.addEventListener('pagereveal', function (event) {
+    if (event.viewTransition) {
+        document.documentElement.classList.add('vt-chegada');
+    }
+});
+
+// Home: o card clicado vira o cabecalho da proxima pagina. O nome da
+// transicao sai do cabecalho da home e vai para o card (nomes sao unicos).
+function limparTransicaoCards() {
+    document.querySelectorAll('.opcao-menu-inicial').forEach(card => {
+        card.style.viewTransitionName = '';
+    });
+    const cabecalho = document.querySelector('.pagina-cabecalho');
+    if (cabecalho) cabecalho.style.viewTransitionName = '';
+}
+
+document.addEventListener('click', function (event) {
+    const card = event.target.closest('.opcao-menu-inicial');
+    // Ctrl/Cmd/Shift-clique abre outra aba: nada de transicao nesta
+    if (!card || event.button !== 0 || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
+    limparTransicaoCards();
+    const cabecalho = document.querySelector('.pagina-cabecalho');
+    if (cabecalho) cabecalho.style.viewTransitionName = 'none';
+    card.style.viewTransitionName = 'cabecalho-pagina';
+});
+
+// Voltando para a home pelo botao "voltar" (cache do navegador), desfaz os nomes
+window.addEventListener('pageshow', function (event) {
+    if (event.persisted) limparTransicaoCards();
+});
+
 document.addEventListener('DOMContentLoaded', function () {
 
-    const aplicativo = document.getElementById("aplicativo");
-    const menuInicial = document.getElementById("menuInicial");
-    const btnMenu = document.getElementById("btnMenu");
-    const menuNavegacao = document.getElementById("menuNavegacao");
-    const btnMenuInicial = document.getElementById("btnMenuInicial");
-    const itensMenu = document.querySelectorAll(".item-menu[data-pagina]");
-    const conteudoAgenda = document.getElementById("conteudoAgenda");
-    const conteudoEmBreve = document.getElementById("conteudoEmBreve");
-    const opcoesMenuInicial = document.querySelectorAll(".opcao-menu-inicial");
-    const loadingGlobal = document.querySelector(".loading");
+    // Barra de navegacao (base_app.html): abre/fecha os links no celular
+    const btnAlternarNav = document.querySelector('.nav-app-alternar');
+    const navApp = document.querySelector('.nav-app');
+    // Ao rolar a pagina, a barra deixa de ser transparente e ganha fundo com blur
+    if (navApp) {
+        const atualizarNav = () => navApp.classList.toggle('rolado', window.scrollY > 8);
+        atualizarNav();
+        window.addEventListener('scroll', atualizarNav, { passive: true });
+    }
 
-    function mostrarPagina(pagina) {
-        const rotas = { agenda: "/agenda-cliente/", atendimento: "/meus-agendamentos/", noticias: "/noticias/", mais: "/mais/", "minha-agenda": "/gerenciar-agenda/" };
-        if (rotas[pagina]) { window.location.href = rotas[pagina]; return; }
-        menuInicial.classList.add("escondida");
-        aplicativo.classList.remove("escondida");
+    if (btnAlternarNav && navApp) {
+        btnAlternarNav.addEventListener('click', function () {
+            const aberto = navApp.classList.toggle('aberto');
+            btnAlternarNav.setAttribute('aria-expanded', String(aberto));
+            btnAlternarNav.setAttribute('aria-label', aberto ? 'Fechar menu' : 'Abrir menu');
+        });
+    }
 
-        itensMenu.forEach(function (item) {
-            item.classList.remove("ativo");
-            if (item.getAttribute("data-pagina") === pagina) {
-
-                item.classList.add("ativo");
+    // Botao de mostrar/ocultar senha (login)
+    document.querySelectorAll('[data-alternar-senha]').forEach(function (botao) {
+        const campo = document.getElementById(botao.dataset.alternarSenha);
+        const icone = botao.querySelector('i');
+        if (!campo) return;
+        botao.addEventListener('click', function () {
+            const mostrar = campo.type === 'password';
+            campo.type = mostrar ? 'text' : 'password';
+            botao.setAttribute('aria-label', mostrar ? 'Ocultar senha' : 'Mostrar senha');
+            botao.setAttribute('aria-pressed', String(mostrar));
+            if (icone) {
+                icone.classList.toggle('fa-eye', !mostrar);
+                icone.classList.toggle('fa-eye-slash', mostrar);
             }
         });
-
-        conteudoAgenda.style.removeProperty("display");
-        conteudoEmBreve.style.removeProperty("display");
-
-
-        if (pagina === "agenda") {
-            conteudoAgenda.classList.remove("escondida");
-            conteudoEmBreve.classList.add("escondida");
-
-            conteudoAgenda.style.setProperty("display", "flex", "important");
-            conteudoEmBreve.style.setProperty("display", "none", "important");
-        } else {
-            conteudoAgenda.classList.add("escondida");
-            conteudoEmBreve.classList.remove("escondida");
-
-            conteudoAgenda.style.setProperty("display", "none", "important");
-            conteudoEmBreve.style.setProperty("display", "flex", "important");
-        }
-
-        if (loadingGlobal) {
-            loadingGlobal.classList.add("escondida");
-            loadingGlobal.style.setProperty("display", "none", "important");
-        }
-    }
-
-    opcoesMenuInicial.forEach(function (opcao) {
-        opcao.addEventListener("click", function () {
-            mostrarPagina(opcao.getAttribute("data-pagina"));
-        });
     });
 
-    itensMenu.forEach(function (item) {
-        item.addEventListener("click", function () {
-            mostrarPagina(item.getAttribute("data-pagina"));
-            menuNavegacao.classList.remove("aberto");
-        });
-    });
+    // Cadastro: mascara de CPF e conferencia da confirmacao de senha
+    const formCadastro = document.getElementById('formCadastro');
+    if (formCadastro) {
+        const campoSenha = document.getElementById('senha');
+        const campoConfirmacao = document.getElementById('senha_confirmacao');
+        const feedbackSenha = document.getElementById('senhaFeedback');
+        const campoCpf = document.getElementById('cpf');
 
-    if (btnMenu) {
-        btnMenu.addEventListener("click", function () {
-            menuNavegacao.classList.toggle("aberto");
+        function validarConfirmacao(mostrarIncompleta = false) {
+            const senha = campoSenha.value;
+            const confirmacao = campoConfirmacao.value;
+            const divergente = confirmacao && (
+                !senha.startsWith(confirmacao) ||
+                (mostrarIncompleta && senha !== confirmacao)
+            );
+
+            campoConfirmacao.setAttribute('aria-invalid', divergente ? 'true' : 'false');
+            feedbackSenha.className = 'feedback-senha';
+
+            if (divergente) {
+                feedbackSenha.textContent = 'As senhas não coincidem.';
+                feedbackSenha.classList.add('erro');
+                return false;
+            }
+
+            if (confirmacao && senha === confirmacao) {
+                feedbackSenha.textContent = 'As senhas coincidem.';
+                feedbackSenha.classList.add('ok');
+                return true;
+            }
+
+            feedbackSenha.textContent = '';
+            return !mostrarIncompleta;
+        }
+
+        if (campoCpf) {
+            campoCpf.addEventListener('input', function () {
+                const d = this.value.replace(/\D/g, '').slice(0, 11);
+                this.value = d
+                    .replace(/^(\d{3})(\d)/, '$1.$2')
+                    .replace(/^(\d{3})\.(\d{3})(\d)/, '$1.$2.$3')
+                    .replace(/\.(\d{3})(\d)/, '.$1-$2');
+            });
+        }
+
+        campoSenha.addEventListener('input', () => validarConfirmacao());
+        campoConfirmacao.addEventListener('input', () => validarConfirmacao());
+
+        // Registrado antes do listener do overlay: se bloquear o envio,
+        // o overlay ve o defaultPrevented e nao aparece.
+        formCadastro.addEventListener('submit', function (event) {
+            if (!validarConfirmacao(true)) {
+                event.preventDefault();
+                campoConfirmacao.focus();
+            }
         });
     }
 
-    if (btnMenuInicial) {
-        btnMenuInicial.addEventListener("click", function () {
-            aplicativo.classList.add("escondida");
-            menuInicial.classList.remove("escondida");
-            menuNavegacao.classList.remove("aberto");
-            itensMenu.forEach(function (item) {
-                item.classList.remove("ativo");
+    // Overlay "carregando" ao enviar formularios marcados com data-carregando
+    const overlayCarregando = document.getElementById('overlayCarregando');
+    if (overlayCarregando) {
+        document.querySelectorAll('form[data-carregando]').forEach(function (form) {
+            form.addEventListener('submit', function (event) {
+                if (event.defaultPrevented) return;
+                overlayCarregando.hidden = false;
             });
         });
     }
 
-    // Horario loading - only on agenda page where the form exists
+    // Noticias: revelar e copiar o cupom
+    const botaoCupom = document.getElementById('botaoCupom');
+    if (botaoCupom) {
+        const areaCupom = document.getElementById('areaCupom');
+        const botaoCopiar = document.getElementById('botaoCopiar');
+
+        botaoCupom.addEventListener('click', () => {
+            areaCupom.classList.remove('escondida');
+            areaCupom.classList.add('cupom-revelado');
+            botaoCupom.classList.add('escondida');
+            botaoCupom.setAttribute('aria-expanded', 'true');
+        });
+
+        botaoCopiar.addEventListener('click', async () => {
+            const rotulo = botaoCopiar.querySelector('span');
+            try {
+                await navigator.clipboard.writeText(document.getElementById('codigoCupom').textContent.trim());
+                rotulo.textContent = 'Código copiado!';
+            } catch (e) {
+                rotulo.textContent = 'Selecione e copie o código acima';
+            }
+            setTimeout(() => { rotulo.textContent = 'Copiar código'; }, 2500);
+        });
+    }
+
+    // Agendamento: confirmacao antes de enviar e carregamento dos horarios livres
     const formEl = document.getElementById('formAgendamento');
     if (formEl) {
         let agendamentoConfirmado = false;
@@ -187,6 +288,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const profissionalSelect = document.getElementById('profissional');
         const dataInput = document.getElementById('data');
         const horarioSelect = document.getElementById('horario');
+        const opcaoVazia = '<option value="">Selecione um horário</option>';
 
         function loadHorarios() {
             const servicoId = servicoSelect?.value ?? '';
@@ -194,51 +296,45 @@ document.addEventListener('DOMContentLoaded', function () {
             const data = dataInput?.value ?? '';
 
             if (!servicoId || !profissionalId || !data) {
-                if (horarioSelect) horarioSelect.innerHTML = '<option value="">Selecione um horário</option>';
+                if (horarioSelect) horarioSelect.innerHTML = opcaoVazia;
                 return;
             }
 
             const url = `${baseUrl}?servico=${servicoId}&profissional=${profissionalId}&data=${data}`;
 
             fetch(url)
-                .then(response => {
-                    return response.text().then(text => {
-                        return { ok: response.ok, status: response.status, text };
-                    });
-                })
-                .then(({ ok, status, text }) => {
+                .then(response => response.text().then(text => ({ ok: response.ok, text })))
+                .then(({ ok, text }) => {
+                    if (!horarioSelect) return;
                     if (!ok) {
-                        if (horarioSelect) horarioSelect.innerHTML = '<option value="">Selecione um horário</option>';
+                        horarioSelect.innerHTML = opcaoVazia;
                         return;
                     }
                     let dataJson;
                     try {
                         dataJson = JSON.parse(text);
                     } catch (e) {
-                        if (horarioSelect) horarioSelect.innerHTML = '<option value="">Selecione um horário</option>';
+                        horarioSelect.innerHTML = opcaoVazia;
                         return;
                     }
-                    if (dataJson.horarios && Array.isArray(dataJson.horarios)) {
-                        if (horarioSelect) {
-                            horarioSelect.innerHTML = '<option value="">Selecione um horário</option>' +
-                                dataJson.horarios.map(hora => `<option value="${hora}">${hora}</option>`).join('');
-                        }
+                    if (Array.isArray(dataJson.horarios)) {
+                        horarioSelect.innerHTML = opcaoVazia +
+                            dataJson.horarios.map(hora => `<option value="${hora}">${hora}</option>`).join('');
                     } else {
-                        if (horarioSelect) horarioSelect.innerHTML = '<option value="">Selecione um horário</option>';
+                        horarioSelect.innerHTML = opcaoVazia;
                     }
                 })
-                .catch(error => {
-                    if (horarioSelect) horarioSelect.innerHTML = '<option value="">Selecione um horário</option>';
+                .catch(() => {
+                    if (horarioSelect) horarioSelect.innerHTML = opcaoVazia;
                 });
         }
 
         if (servicoSelect) servicoSelect.addEventListener('change', loadHorarios);
         if (profissionalSelect) profissionalSelect.addEventListener('change', loadHorarios);
         if (dataInput) dataInput.addEventListener('change', loadHorarios);
-    } else {
-        // FormAgendamento not found - skipping horario loading (not on agenda page)
     }
 
+    // Profissional: abrir/fechar a agenda
     const btnToggleAgenda = document.getElementById("btnToggleAgenda");
     if (btnToggleAgenda) {
         btnToggleAgenda.addEventListener("click", function () {
@@ -263,7 +359,7 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // Handle status change buttons
+    // Botoes de status dos agendamentos (confirmar / concluir / cancelar)
     document.addEventListener('click', async function(e) {
         const button = e.target.closest('button[data-acao][data-id]');
         if (!button) return;
@@ -285,12 +381,12 @@ document.addEventListener('DOMContentLoaded', function () {
             if (button.hasAttribute('data-cupom-disponivel')) {
                 opcoes.rotuloCheckbox = 'O cliente aplicou o cupom de 15% de desconto';
             }
-            const resultado = await abrirDialogo('Confirmar que este atendimento foi conclu\u00eddo?', opcoes);
+            const resultado = await abrirDialogo('Confirmar que este atendimento foi concluído?', opcoes);
             if (!resultado.aceito) return;
             cupom = resultado.marcado;
         }
 
-        // Disable button to prevent double clicks
+        // Evita clique duplo enquanto a requisicao esta em andamento
         button.disabled = true;
 
         fetch(`/agendamento/${id}/status/`, {
@@ -304,7 +400,6 @@ document.addEventListener('DOMContentLoaded', function () {
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                // Reload the page to reflect the new status
                 window.location.reload();
             } else {
                 showMessage(data.error || 'Erro desconhecido', 'error');
@@ -320,36 +415,49 @@ document.addEventListener('DOMContentLoaded', function () {
 
 });
 
-// Toasts: ficam visíveis por 7s e depois saem com animação
-const TOAST_DURACAO_MS = 7000;
+// Toasts (_toasts.html): o tempo na tela e a barra de progresso do CSS (6s).
+// Quando ela termina, o toast sai; mouse ou foco em cima pausam a barra.
+// O "x" fecha na hora.
+function fecharToast(toast) {
+    if (toast.classList.contains('saindo')) return;
+    toast.classList.add('saindo');
+    toast.addEventListener('animationend', function (event) {
+        if (event.target === toast) toast.remove();
+    });
+}
 
 document.querySelectorAll('.toast').forEach(function (toast) {
-    setTimeout(function () {
-        toast.classList.add('saindo');
-        toast.addEventListener('animationend', function () {
-            toast.remove();
+    const progresso = toast.querySelector('.toast-progresso');
+    if (progresso) {
+        progresso.addEventListener('animationend', function () {
+            fecharToast(toast);
         }, { once: true });
-    }, TOAST_DURACAO_MS);
-});
-
-// Helper function to show messages (used in status update)
-function showMessage(message, type) {
-    // Remove any existing messages
-    const existingMessages = document.querySelectorAll('.mensagem');
-    existingMessages.forEach(el => el.remove());
-
-    // Create message element
-    const messageEl = document.createElement('div');
-    messageEl.className = `mensagem ${type}`;
-    messageEl.textContent = message;
-
-    // Add to the page (after the navbar, before the content)
-    const tela = document.querySelector('.tela');
-    if (tela) {
-        tela.insertBefore(messageEl, tela.firstChild.nextSibling);
     }
 
-    // Auto-remove after 5 seconds
+    const fechar = toast.querySelector('.toast-fechar');
+    if (fechar) {
+        fechar.addEventListener('click', function () {
+            fecharToast(toast);
+        });
+    }
+});
+
+// Mostra uma mensagem temporaria logo abaixo do cabecalho da pagina
+function showMessage(message, type) {
+    document.querySelectorAll('.mensagem').forEach(el => el.remove());
+
+    const messageEl = document.createElement('div');
+    messageEl.className = `mensagem ${type}`;
+    messageEl.setAttribute('role', 'alert');
+    messageEl.textContent = message;
+
+    const ancora = document.querySelector('.pagina-cabecalho') || document.querySelector('.caixa-login .subtitulo');
+    if (ancora) {
+        ancora.after(messageEl);
+    } else {
+        document.body.prepend(messageEl);
+    }
+
     setTimeout(() => {
         messageEl.remove();
     }, 5000);

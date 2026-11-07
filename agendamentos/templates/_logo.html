@@ -1,0 +1,13 @@
+{% comment %}
+Logo oficial (bigode + "barberhouse" + slogan), na versao para fundo escuro.
+- O bigode e uma mascara (logo-bigode.png): a cor vem do CSS.
+- O nome e texto em Inter 800 (como no SVG oficial), nitido em qualquer tamanho.
+A barra (bigode) e a home (logo completo) usam os SVGs animados direto no HTML.
+Uso: {% include '_logo.html' with tamanho='auth' %}   tamanhos: auth, abertura
+     slogan=True mostra "barbearia & estilo".
+{% endcomment %}
+<span class="logo logo-{{ tamanho|default:'nav' }}">
+    <span class="logo-bigode" aria-hidden="true"></span>
+    <span class="logo-nome">barber<span class="logo-nome-destaque">house</span></span>
+    {% if slogan %}<span class="logo-slogan">barbearia &amp; estilo</span>{% endif %}
+</span>

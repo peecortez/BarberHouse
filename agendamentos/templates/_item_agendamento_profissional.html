@@ -1,23 +1,25 @@
-<div class="agendamento-item">
-    <div class="agendamento-info">
-        <span class="servico">{{ agendamento.servico.nome }}</span>
-        <span class="cliente">{{ agendamento.cliente.nome }}</span>
-        <span class="data-hora">{{ agendamento.data_hora|date:"d/m/Y H:i" }}</span>
-        <span class="status">{{ agendamento.get_status_display }}</span>
-        {% if agendamento.cupom_aplicado %}
-            <span class="cupom-aplicado"><i class="fa-solid fa-ticket"></i> Cupom de 15% aplicado</span>
-        {% endif %}
-        {% if agendamento.status == 'CANCELADO' %}
-            <span class="cancelado-por">Cancelado por: {{ agendamento.get_cancelado_por_display|default:"Não registrado" }}</span>
-        {% endif %}
+<article class="agendamento-item">
+    <div class="agendamento-topo">
+        <h3 class="agendamento-servico">{{ agendamento.servico.nome }}</h3>
+        <span class="etiqueta-status status-{{ agendamento.status|lower }}">{{ agendamento.get_status_display }}</span>
     </div>
+    <dl class="agendamento-detalhes">
+        <div><dt>Cliente</dt><dd>{{ agendamento.cliente.nome }}</dd></div>
+        <div><dt>Data e hora</dt><dd>{{ agendamento.data_hora|date:"d/m/Y H:i" }}</dd></div>
+        {% if agendamento.status == 'CANCELADO' %}
+            <div><dt>Cancelado por</dt><dd>{{ agendamento.get_cancelado_por_display|default:"Não registrado" }}</dd></div>
+        {% endif %}
+    </dl>
+    {% if agendamento.cupom_aplicado %}
+        <p class="cupom-aplicado"><i class="fa-solid fa-ticket" aria-hidden="true"></i> Cupom de 15% aplicado</p>
+    {% endif %}
     {% if agendamento.status == 'AGENDADO' or agendamento.status == 'CONFIRMADO' %}
         <div class="agendamento-actions">
             {% if agendamento.status == 'AGENDADO' %}
-                <button class="botao-secundario" data-id="{{ agendamento.id }}" data-acao="confirmar">Confirmar</button>
+                <button type="button" class="botao-secundario" data-id="{{ agendamento.id }}" data-acao="confirmar">Confirmar</button>
             {% endif %}
-            <button class="botao-secundario" data-id="{{ agendamento.id }}" data-acao="concluir"{% if agendamento.cliente.cupom_disponivel %} data-cupom-disponivel="1"{% endif %}>Concluir</button>
-            <button class="botao-secundario" data-id="{{ agendamento.id }}" data-acao="cancelar">Cancelar</button>
+            <button type="button" class="botao-secundario" data-id="{{ agendamento.id }}" data-acao="concluir"{% if agendamento.cliente.cupom_disponivel %} data-cupom-disponivel="1"{% endif %}>Concluir</button>
+            <button type="button" class="botao-secundario botao-perigo" data-id="{{ agendamento.id }}" data-acao="cancelar">Cancelar</button>
         </div>
     {% endif %}
-</div>
+</article>

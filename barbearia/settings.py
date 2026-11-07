@@ -30,9 +30,10 @@ if not SECRET_KEY:
 
 ALLOWED_HOSTS = [
     host.strip()
-    for host in os.environ.get("DJANGO_ALLOWED_HOSTS", "127.0.0.1,localhost").split(",")
+    for host in os.environ.get("DJANGO_ALLOWED_HOSTS", "127.0.0.1,localhost,.trycloudflare.com").split(",")
     if host.strip()
 ]
+CSRF_TRUSTED_ORIGINS = ["https://*.trycloudflare.com"]
 
 
 # Application definition
@@ -69,6 +70,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'agendamentos.context_processors.tipo_usuario',
             ],
         },
     },
