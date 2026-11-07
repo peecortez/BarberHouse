@@ -1,0 +1,77 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{# classe_fundo troca a foto de fundo por tela (ex.: fundo-home, fundo-agendamentos) #}
+{% block body_class %}layout-app {% block classe_fundo %}{% endblock %}{% if abertura_marca %} com-abertura{% endif %}{% endblock %}
+
+{% block corpo %}
+    {% if abertura_marca %}
+        {# Abertura da marca, exibida so na primeira home apos o login #}
+        <div class="abertura-marca" aria-hidden="true">
+            {% include '_logo.html' with tamanho='abertura' slogan=True %}
+        </div>
+    {% endif %}
+
+    {% with atual=request.resolver_match.url_name %}
+    <header class="nav-app">
+        <a href="{% url 'home' %}" class="nav-app-marca" aria-label="BarberHouse, ir para o início">
+            {% comment %}
+                Bigode animado (referencias/bigode-animado.svg). Cores no CSS (.svg-tinta);
+                viewBox com folga em cima para a ponta que gira nao ser cortada.
+            {% endcomment %}
+            <svg class="bigode-nav svg-animado" xmlns="http://www.w3.org/2000/svg" viewBox="0 -4 200 54" aria-hidden="true" focusable="false">
+                <g transform="translate(100 22)" class="svg-tinta">
+                    <!-- metade esquerda: anima -->
+                    <g>
+                        <path d="M 0 0 C -10 -14 -30 -18 -50 -8 C -66 0 -78 8 -92 2 C -84 14 -64 22 -44 18 C -24 14 -10 8 0 4 Z"/>
+                        <animateTransform attributeName="transform" type="rotate"
+                            values="0 0 2; 11 0 2; 0 0 2; 0 0 2" keyTimes="0; 0.18; 0.4; 1"
+                            calcMode="spline" keySplines="0.4 0 0.2 1; 0.4 0 0.2 1; 0 0 1 1"
+                            dur="2.6s" repeatCount="indefinite"/>
+                    </g>
+                    <!-- metade direita: parada -->
+                    <path d="M 0 0 C 10 -14 30 -18 50 -8 C 66 0 78 8 92 2 C 84 14 64 22 44 18 C 24 14 10 8 0 4 Z"/>
+                </g>
+            </svg>
+        </a>
+
+        <button type="button" class="nav-app-alternar" aria-label="Abrir menu" aria-expanded="false" aria-controls="navAppLinks">
+            <i class="fa-solid fa-bars" aria-hidden="true"></i>
+        </button>
+
+        <nav id="navAppLinks" class="nav-app-links" aria-label="Principal">
+            {% if tipo_usuario %}
+                <a href="{% url 'home' %}" class="nav-app-link{% if atual == 'home' %} ativo{% endif %}"{% if atual == 'home' %} aria-current="page"{% endif %}>Início</a>
+            {% endif %}
+            {% if tipo_usuario == 'cliente' %}
+                <a href="{% url 'agenda_cliente' %}" class="nav-app-link{% if atual == 'agenda_cliente' %} ativo{% endif %}"{% if atual == 'agenda_cliente' %} aria-current="page"{% endif %}>Agendar</a>
+                <a href="{% url 'meus_agendamentos' %}" class="nav-app-link{% if atual == 'meus_agendamentos' %} ativo{% endif %}"{% if atual == 'meus_agendamentos' %} aria-current="page"{% endif %}>Meus agendamentos</a>
+            {% elif tipo_usuario == 'profissional' %}
+                <a href="{% url 'gerenciar_agenda' %}" class="nav-app-link{% if atual == 'gerenciar_agenda' %} ativo{% endif %}"{% if atual == 'gerenciar_agenda' %} aria-current="page"{% endif %}>Minha agenda</a>
+            {% endif %}
+            <a href="{% url 'noticias' %}" class="nav-app-link{% if atual == 'noticias' %} ativo{% endif %}"{% if atual == 'noticias' %} aria-current="page"{% endif %}>Notícias</a>
+            <a href="{% url 'mais' %}" class="nav-app-link{% if atual == 'mais' %} ativo{% endif %}"{% if atual == 'mais' %} aria-current="page"{% endif %}>Mais</a>
+
+            {% if user.is_authenticated %}
+                <form method="post" action="{% url 'logout' %}" class="logout-form">
+                    {% csrf_token %}
+                    <button type="submit" class="botao-logout">Sair</button>
+                </form>
+            {% else %}
+                <a href="{% url 'login' %}" class="nav-app-entrar">Entrar</a>
+            {% endif %}
+        </nav>
+    </header>
+    {% endwith %}
+
+    <main class="pagina">
+        {% block cabecalho_pagina %}
+            <header class="pagina-cabecalho">
+                <h1>{% block titulo_pagina %}{% endblock %}</h1>
+                <p class="pagina-subtitulo">{% block subtitulo_pagina %}{% endblock %}</p>
+            </header>
+        {% endblock %}
+
+        {% block conteudo %}{% endblock %}
+    </main>
+{% endblock %}

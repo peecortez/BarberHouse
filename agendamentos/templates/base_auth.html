@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block body_class %}layout-auth{% endblock %}
+
+{# Login e cadastro mostram as mensagens dentro do card, nao como toast #}
+{% block toasts %}{% endblock %}
+
+{% block corpo %}
+    <main class="tela">
+        <div class="caixa-login">
+            <div class="marca-auth">
+                {% include '_logo.html' with tamanho='auth' slogan=True %}
+            </div>
+            {% block conteudo %}{% endblock %}
+        </div>
+    </main>
+
+    <div id="overlayCarregando" class="overlay-carregando" hidden>
+        <div class="animacao-barbearia">
+            <div class="loading-corte">
+                <i class="fa-solid fa-scissors tesoura-loading" aria-hidden="true"></i>
+            </div>
+        </div>
+        <p class="texto-loading">{% block texto_carregando %}Carregando...{% endblock %}</p>
+    </div>
+{% endblock %}

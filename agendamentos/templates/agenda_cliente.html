@@ -1,66 +1,48 @@
-{% load static versao_static %}
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-    <meta charset="UTF-8">
-    <title>Agendar Serviço - Barber Shop</title>
-    <link rel="stylesheet" href="{% static_v 'agendamentos/barbearia.css' %}">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
-</head>
-<body>
-    <section class="tela">
-        <div class="caixa-login" style="width: 90%; max-width: 500px;">
-            {% include '_navegacao.html' %}
-            <h1>Agendar Serviço</h1>
-            <p class="subtitulo">Escolha o serviço, profissional e horário</p>
+{% extends 'base_app.html' %}
 
-            {% if messages %}
-                {% for message in messages %}
-                    <div class="mensagem mensagem-{{ message.tags }}">{{ message }}</div>
-                {% endfor %}
-            {% endif %}
+{% block titulo %}Agendar Serviço - BarberHouse{% endblock %}
+{% block classe_fundo %}fundo-agendamentos{% endblock %}
+{% block titulo_pagina %}Agendar serviço{% endblock %}
+{% block subtitulo_pagina %}Escolha o serviço, profissional e horário{% endblock %}
 
-            <form id="formAgendamento" method="post" action="{% url 'agendar_servico' %}" data-horarios-url="{% url 'horarios_disponiveis' %}">
-                {% csrf_token %}
+{% block conteudo %}
+    <section class="painel">
+        <form id="formAgendamento" method="post" action="{% url 'agendar_servico' %}" data-horarios-url="{% url 'horarios_disponiveis' %}">
+            {% csrf_token %}
 
-                <div class="campo">
-                    <label for="servico">Serviço</label>
-                    <select id="servico" name="servico" required>
-                        <option value="">Selecione um serviço</option>
-                        {% for servico in servicos %}
-                        <option value="{{ servico.id }}">{{ servico.nome }} - {{ servico.duracao_minutos }}min - R$ {{ servico.preco }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
+            <div class="campo">
+                <label for="servico">Serviço</label>
+                <select id="servico" name="servico" required>
+                    <option value="">Selecione um serviço</option>
+                    {% for servico in servicos %}
+                    <option value="{{ servico.id }}">{{ servico.nome }} - {{ servico.duracao_minutos }}min - R$ {{ servico.preco }}</option>
+                    {% endfor %}
+                </select>
+            </div>
 
-                <div class="campo">
-                    <label for="profissional">Profissional</label>
-                    <select id="profissional" name="profissional" required>
-                        <option value="">Selecione um profissional</option>
-                        {% for profissional in profissionais %}
-                        <option value="{{ profissional.id }}">{{ profissional.nome }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
+            <div class="campo">
+                <label for="profissional">Profissional</label>
+                <select id="profissional" name="profissional" required>
+                    <option value="">Selecione um profissional</option>
+                    {% for profissional in profissionais %}
+                    <option value="{{ profissional.id }}">{{ profissional.nome }}</option>
+                    {% endfor %}
+                </select>
+            </div>
 
-                <div class="campo">
-                    <label for="data">Data</label>
-                    <input type="date" id="data" name="data" min="{{ today|date:'Y-m-d' }}" required>
-                </div>
+            <div class="campo">
+                <label for="data">Data</label>
+                <input type="date" id="data" name="data" min="{{ today|date:'Y-m-d' }}" required>
+            </div>
 
-                <div class="campo">
-                    <label for="horario">Horário</label>
-                    <select id="horario" name="horario" required>
-                        <option value="">Selecione um horário</option>
-                    </select>
-                </div>
+            <div class="campo">
+                <label for="horario">Horário</label>
+                <select id="horario" name="horario" required>
+                    <option value="">Selecione um horário</option>
+                </select>
+            </div>
 
-                <button type="submit" class="botao-principal">Agendar</button>
-            </form>
-
-            <div id="mensagemAgendamento" style="margin-top: 20px; padding: 15px; border-radius: 5px; display: none;"></div>
-        </div>
+            <button type="submit" class="botao-principal">Agendar</button>
+        </form>
     </section>
-    <script src="{% static_v 'agendamentos/menu.js' %}"></script>
-</body>
-</html>
+{% endblock %}

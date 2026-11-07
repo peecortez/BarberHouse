@@ -1,54 +1,49 @@
-{% load static versao_static %}
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-    <meta charset="UTF-8">
-    <title>Meus Agendamentos - Barber Shop</title>
-    <link rel="stylesheet" href="{% static_v 'agendamentos/barbearia.css' %}">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
-</head>
-<body>
-    {% include '_toasts.html' %}
+{% extends 'base_app.html' %}
 
-    <section class="tela">
-        <div class="caixa-login" style="width: 90%; max-width: 600px;">
-            {% include '_navegacao.html' %}
-            <h1>Meus Agendamentos</h1>
-            <p class="subtitulo">Visualize e acompanhe seus agendamentos</p>
+{% block titulo %}Meus Agendamentos - BarberHouse{% endblock %}
+{% block classe_fundo %}fundo-agendamentos{% endblock %}
+{% block titulo_pagina %}Meus agendamentos{% endblock %}
+{% block subtitulo_pagina %}Visualize e acompanhe seus agendamentos{% endblock %}
 
-            {% if agendamentos_ativos %}
-                <section class="grupo-agendamentos">
-                    <h2>Agendamentos ativos</h2>
-                    {% for agendamento in agendamentos_ativos %}
-                        {% include '_item_agendamento_cliente.html' %}
-                    {% endfor %}
-                </section>
-            {% endif %}
+{% block conteudo %}
+    {% if agendamentos_ativos %}
+        <section class="grupo-agendamentos">
+            <h2>Agendamentos ativos <span class="grupo-contagem">{{ agendamentos_ativos|length }}</span></h2>
+            <div class="lista-agendamentos">
+                {% for agendamento in agendamentos_ativos %}
+                    {% include '_item_agendamento_cliente.html' %}
+                {% endfor %}
+            </div>
+        </section>
+    {% endif %}
 
-            {% if agendamentos_concluidos %}
-                <section class="grupo-agendamentos concluidos">
-                    <h2>Concluídos</h2>
-                    {% for agendamento in agendamentos_concluidos %}
-                        {% include '_item_agendamento_cliente.html' %}
-                    {% endfor %}
-                </section>
-            {% endif %}
+    {% if agendamentos_concluidos %}
+        <section class="grupo-agendamentos concluidos">
+            <h2>Concluídos <span class="grupo-contagem">{{ agendamentos_concluidos|length }}</span></h2>
+            <div class="lista-agendamentos">
+                {% for agendamento in agendamentos_concluidos %}
+                    {% include '_item_agendamento_cliente.html' %}
+                {% endfor %}
+            </div>
+        </section>
+    {% endif %}
 
-            {% if agendamentos_cancelados %}
-                <section class="grupo-agendamentos cancelados">
-                    <h2>Cancelados</h2>
-                    {% for agendamento in agendamentos_cancelados %}
-                        {% include '_item_agendamento_cliente.html' %}
-                    {% endfor %}
-                </section>
-            {% endif %}
+    {% if agendamentos_cancelados %}
+        <section class="grupo-agendamentos cancelados">
+            <h2>Cancelados <span class="grupo-contagem">{{ agendamentos_cancelados|length }}</span></h2>
+            <div class="lista-agendamentos">
+                {% for agendamento in agendamentos_cancelados %}
+                    {% include '_item_agendamento_cliente.html' %}
+                {% endfor %}
+            </div>
+        </section>
+    {% endif %}
 
-            {% if not agendamentos_ativos and not agendamentos_concluidos and not agendamentos_cancelados %}
-                <p>Você ainda não tem agendamentos.</p>
-                <p>Agende seu primeiro serviço pelo menu principal.</p>
-            {% endif %}
-        </div>
-    </section>
-    <script src="{% static_v 'agendamentos/menu.js' %}"></script>
-</body>
-</html>
+    {% if not agendamentos_ativos and not agendamentos_concluidos and not agendamentos_cancelados %}
+        <section class="painel estado-vazio">
+            <span class="estado-vazio-icone"><i class="fa-regular fa-calendar" aria-hidden="true"></i></span>
+            <p>Você ainda não tem agendamentos.</p>
+            <a href="{% url 'agenda_cliente' %}" class="botao-principal">Agendar meu primeiro serviço</a>
+        </section>
+    {% endif %}
+{% endblock %}

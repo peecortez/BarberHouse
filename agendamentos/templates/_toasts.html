@@ -1,9 +1,15 @@
 {% if messages %}
     <div class="toast-area" aria-live="polite">
         {% for message in messages %}
+            {# Fecha sozinho quando a barra de progresso termina (6s, pausa com o mouse em cima) ou no "x" #}
             <div class="toast toast-{{ message.tags }}" role="status">
-                <i class="fa-solid {% if message.tags == 'success' %}fa-circle-check{% else %}fa-circle-exclamation{% endif %} toast-icone" aria-hidden="true"></i>
+                <span class="toast-icone" aria-hidden="true">
+                    <i class="fa-solid {% if message.tags == 'success' %}fa-check{% else %}fa-exclamation{% endif %}"></i>
+                </span>
                 <span class="toast-texto">{{ message }}</span>
+                <button type="button" class="toast-fechar" aria-label="Fechar notificação">
+                    <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+                </button>
                 <span class="toast-progresso" aria-hidden="true"></span>
             </div>
         {% endfor %}

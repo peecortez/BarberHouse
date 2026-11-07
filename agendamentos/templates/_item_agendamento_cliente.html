@@ -1,19 +1,19 @@
-<div class="agendamento-item">
-    <div class="agendamento-info">
-        <h3>{{ agendamento.servico.nome }}</h3>
-        <p><strong>Profissional:</strong> {{ agendamento.profissional.nome }}</p>
-        <p><strong>Data e hora:</strong> {{ agendamento.data_hora|date:"d/m/Y H:i" }}</p>
-        <p><strong>Valor:</strong> R$ {{ agendamento.servico.preco }}</p>
-        <p><strong>Status:</strong> {{ agendamento.get_status_display }}</p>
-        {% if agendamento.status == 'CANCELADO' %}
-            <p><strong>Cancelado por:</strong> {{ agendamento.get_cancelado_por_display|default:"Não registrado" }}</p>
-        {% endif %}
+<article class="agendamento-item">
+    <div class="agendamento-topo">
+        <h3 class="agendamento-servico">{{ agendamento.servico.nome }}</h3>
+        <span class="etiqueta-status status-{{ agendamento.status|lower }}">{{ agendamento.get_status_display }}</span>
     </div>
+    <dl class="agendamento-detalhes">
+        <div><dt>Profissional</dt><dd>{{ agendamento.profissional.nome }}</dd></div>
+        <div><dt>Data e hora</dt><dd>{{ agendamento.data_hora|date:"d/m/Y H:i" }}</dd></div>
+        <div><dt>Valor</dt><dd>R$ {{ agendamento.servico.preco }}</dd></div>
+        {% if agendamento.status == 'CANCELADO' %}
+            <div><dt>Cancelado por</dt><dd>{{ agendamento.get_cancelado_por_display|default:"Não registrado" }}</dd></div>
+        {% endif %}
+    </dl>
     {% if agendamento.status == 'AGENDADO' or agendamento.status == 'CONFIRMADO' %}
         <div class="agendamento-actions">
-            <button class="botao-secundario" data-id="{{ agendamento.id }}" data-acao="cancelar">
-                Cancelar
-            </button>
+            <button type="button" class="botao-secundario botao-perigo" data-id="{{ agendamento.id }}" data-acao="cancelar">Cancelar</button>
         </div>
     {% endif %}
-</div>
+</article>

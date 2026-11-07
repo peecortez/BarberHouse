@@ -1,115 +1,87 @@
-{% load static versao_static %}
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-    <meta charset="UTF-8">
-    <title>Barber Shop</title>
-    <link rel="stylesheet" href="{% static_v 'agendamentos/barbearia.css' %}">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
-</head>
-<body>
-    {% include '_toasts.html' %}
+{% extends 'base_app.html' %}
 
-  
-    <section id="menuInicial" class="tela menu-inicial">
-        <h1>Bem-vindo!</h1>
-        <p class="subtitulo-menu">Escolha uma opção</p>
-        <div class="opcoes-menu-inicial">
-            {% if tipo == 'cliente' %}
-                <button class="opcao-menu-inicial" data-pagina="agenda">
-                    <span class="icone-menu-inicial">📅</span>
-                    <span>Agendar</span>
-                </button>
-                <button class="opcao-menu-inicial" data-pagina="atendimento">
-                    <span class="icone-menu-inicial">✂️</span>
-                    <span>Meus agendamentos</span>
-                </button>
-            {% else %}  <!-- profissional -->
-                <button class="opcao-menu-inicial" data-pagina="minha-agenda">
-                    <span class="icone-menu-inicial">📅</span>
-                    <span>Minha Agenda</span>
-                </button>
-            {% endif %}
-            <button class="opcao-menu-inicial" data-pagina="noticias">
-                <span class="icone-menu-inicial">📰</span>
-                <span>Notícias</span>
-            </button>
-            <button class="opcao-menu-inicial" data-pagina="mais">
-                <span class="icone-menu-inicial">⚙️</span>
-                <span>Mais</span>
-            </button>
-        </div>
-        <!-- Logout button in top-right corner of initial menu -->
-        <form method="post" action="{% url 'logout' %}" class="logout-form-top">
-            {% csrf_token %}
-            <button type="submit" class="botao-logout">Sair</button>
-        </form>
-    </section>
+{% block titulo %}BarberHouse{% endblock %}
+{% block classe_fundo %}fundo-home{% endblock %}
 
-    <section id="aplicativo" class="escondida">
-        
->
-        <div class="loading escondida">
-            <div class="animacao-barbearia">
-                <div class="loading-corte">
-                    <i class="fa-solid fa-scissors tesoura-loading"></i>
-                </div>
-            </div>
-            <p class="texto-loading">Carregando...</p>
-        </div>
+{# Titulo em dois tons (Ponder): saudacao em branco, pergunta em cinza no mesmo titulo #}
+{% block cabecalho_pagina %}
+    {% comment %}
+        Logo completo animado (referencias/logo-barberhouse-animada.svg), colado direto.
+        Adaptado ao tema escuro: cores pelas classes svg-* no CSS (o original e escuro
+        sobre creme) e viewBox recortado no desenho (o original tem 520x400 com muita sobra).
+    {% endcomment %}
+    <div class="home-marca">
+        <svg class="logo-completo svg-animado" xmlns="http://www.w3.org/2000/svg" viewBox="97 78 326 222" role="img" aria-label="BarberHouse - barbearia e estilo">
+            <g transform="translate(260 130) scale(1.7)" class="svg-tinta">
+                <g>
+                    <path d="M 0 0 C -10 -14 -30 -18 -50 -8 C -66 0 -78 8 -92 2 C -84 14 -64 22 -44 18 C -24 14 -10 8 0 4 Z"/>
+                    <animateTransform attributeName="transform" type="rotate"
+                        values="0 0 2; 11 0 2; 0 0 2; 0 0 2" keyTimes="0; 0.18; 0.4; 1"
+                        calcMode="spline" keySplines="0.4 0 0.2 1; 0.4 0 0.2 1; 0 0 1 1"
+                        dur="2.6s" repeatCount="indefinite"/>
+                </g>
+                <path d="M 0 0 C 10 -14 30 -18 50 -8 C 66 0 78 8 92 2 C 84 14 64 22 44 18 C 24 14 10 8 0 4 Z"/>
+            </g>
+            <text x="260" y="250" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-weight="800" font-size="54" letter-spacing="-2"><tspan class="svg-tinta">barber</tspan><tspan class="svg-destaque">house</tspan></text>
+            <text x="260" y="288" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-weight="400" font-size="17" letter-spacing="3" class="svg-slogan">barbearia &amp; estilo</text>
+        </svg>
+    </div>
 
+    <header class="pagina-cabecalho">
+        <h1 class="titulo-dois-tons">Olá{% if primeiro_nome %}, <span class="destaque">{{ primeiro_nome }}</span>{% endif %}. <span class="titulo-apoio">O que vamos fazer hoje?</span></h1>
+    </header>
+{% endblock %}
 
-        <header class="cabecalho">
-            <div class="logo-pequena">
-                <img src="{% static 'agendamentos/bigode.png' %}" class="logo-bigode" alt="Logo da barbearia">
-                <strong class="nome-barbearia">Barber Shop</strong>
-            </div>
-            <button id="btnMenu" class="botao-menu">
-                <i class="fa-solid fa-bars"></i>
-            </button>
-            <form method="post" action="{% url 'logout' %}" class="logout-form">
-                {% csrf_token %}
-                <button type="submit" class="botao-logout">Sair</button>
-            </form>
-        </header>
-
- 
-        <nav id="menuNavegacao" class="menu-navegacao">
-            <button id="btnMenuInicial" class="item-menu item-menu-inicial">📌 Menu Inicial</button>
-            {% if tipo == 'cliente' %}
-                <button class="item-menu" data-pagina="agenda">📅 Agendar</button>
-                <button class="item-menu" data-pagina="atendimento">✂️ Meus agendamentos</button>
-            {% else %}  <!-- profissional -->
-                <button class="item-menu" data-pagina="minha-agenda">📅 Minha Agenda</button>
-            {% endif %}
-            <button class="item-menu" data-pagina="noticias">📰 Notícias</button>
-        </nav>
-
-   
-        <main class="conteudo">
-            
-     
-            <div id="conteudoAgenda" class="escondida">
-                <div class="icone-breve">
-                    <i class="fa-solid fa-scissors"></i>
-                </div>
-                <h2>Em breve</h2>
-                <p>Esta funcionalidade ainda está sendo preparada pela nossa equipe.</p>
-            </div>
-
-            <div id="conteudoEmBreve" class="escondida">
-                <div class="icone-breve">
-                    <i class="fa-solid fa-scissors"></i>
-                </div>
-                <h2>Em breve</h2>
-                <p>Esta funcionalidade ainda está sendo preparada pela nossa equipe.</p>
-            </div>
-
-        </main>
-
-    </section>
-
-    <script src="{% static_v 'agendamentos/menu.js' %}"></script>
-
-</body>
-</html>
+{% block conteudo %}
+    {# O card clicado vira o cabecalho da proxima pagina (View Transitions, ver menu.js) #}
+    <div class="opcoes-menu-inicial">
+        {% if tipo == 'cliente' %}
+            <a href="{% url 'agenda_cliente' %}" class="opcao-menu-inicial">
+                <span class="opcao-topo">
+                    <span class="icone-menu-inicial"><i class="fa-solid fa-calendar-plus" aria-hidden="true"></i></span>
+                    <span class="opcao-indice" aria-hidden="true">01</span>
+                </span>
+                <span class="opcao-titulo">Agendar</span>
+                <span class="opcao-descricao">Escolha serviço, profissional e horário.</span>
+                <i class="fa-solid fa-arrow-right opcao-seta" aria-hidden="true"></i>
+            </a>
+            <a href="{% url 'meus_agendamentos' %}" class="opcao-menu-inicial">
+                <span class="opcao-topo">
+                    <span class="icone-menu-inicial"><i class="fa-solid fa-scissors" aria-hidden="true"></i></span>
+                    <span class="opcao-indice" aria-hidden="true">02</span>
+                </span>
+                <span class="opcao-titulo">Meus agendamentos</span>
+                <span class="opcao-descricao">Acompanhe ou cancele seus horários.</span>
+                <i class="fa-solid fa-arrow-right opcao-seta" aria-hidden="true"></i>
+            </a>
+        {% else %}
+            <a href="{% url 'gerenciar_agenda' %}" class="opcao-menu-inicial">
+                <span class="opcao-topo">
+                    <span class="icone-menu-inicial"><i class="fa-solid fa-calendar-days" aria-hidden="true"></i></span>
+                    <span class="opcao-indice" aria-hidden="true">01</span>
+                </span>
+                <span class="opcao-titulo">Minha agenda</span>
+                <span class="opcao-descricao">Confirme atendimentos e abra ou feche sua agenda.</span>
+                <i class="fa-solid fa-arrow-right opcao-seta" aria-hidden="true"></i>
+            </a>
+        {% endif %}
+        <a href="{% url 'noticias' %}" class="opcao-menu-inicial">
+            <span class="opcao-topo">
+                <span class="icone-menu-inicial"><i class="fa-solid fa-newspaper" aria-hidden="true"></i></span>
+                <span class="opcao-indice" aria-hidden="true">{% if tipo == 'cliente' %}03{% else %}02{% endif %}</span>
+            </span>
+            <span class="opcao-titulo">Notícias</span>
+            <span class="opcao-descricao">Promoções e novidades da barbearia.</span>
+            <i class="fa-solid fa-arrow-right opcao-seta" aria-hidden="true"></i>
+        </a>
+        <a href="{% url 'mais' %}" class="opcao-menu-inicial">
+            <span class="opcao-topo">
+                <span class="icone-menu-inicial"><i class="fa-solid fa-ellipsis" aria-hidden="true"></i></span>
+                <span class="opcao-indice" aria-hidden="true">{% if tipo == 'cliente' %}04{% else %}03{% endif %}</span>
+            </span>
+            <span class="opcao-titulo">Mais</span>
+            <span class="opcao-descricao">Outras opções da sua conta.</span>
+            <i class="fa-solid fa-arrow-right opcao-seta" aria-hidden="true"></i>
+        </a>
+    </div>
+{% endblock %}

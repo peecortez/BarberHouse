@@ -1,0 +1,25 @@
+{% load static versao_static %}<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block titulo %}BarberHouse{% endblock %}</title>
+    <link rel="icon" type="image/png" href="{% static 'agendamentos/favicon.png' %}">
+    <link rel="apple-touch-icon" href="{% static 'agendamentos/apple-touch-icon.png' %}">
+    <meta name="theme-color" content="#0a0a0a">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    {# Inter 800 (nome) e 400 (slogan): fonte do logo oficial #}
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=Geist:wght@400;500;600&family=Inter:wght@400;800&display=swap">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link rel="stylesheet" href="{% static_v 'agendamentos/barbearia.css' %}">
+</head>
+<body class="{% block body_class %}{% endblock %}">
+    {% block toasts %}{% include '_toasts.html' %}{% endblock %}
+
+    {% block corpo %}{% endblock %}
+
+    {% block scripts %}{% endblock %}
+    <script src="{% static_v 'agendamentos/menu.js' %}"></script>
+</body>
+</html>
