@@ -17,6 +17,25 @@ from pathlib import Path
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
+def _carregar_env(caminho):
+    """Le o arquivo .env local (KEY=valor) sem dependencia externa.
+
+    O .env esta no .gitignore: as credenciais (senha de app do Gmail) ficam so
+    na maquina. Variaveis ja definidas no ambiente tem prioridade.
+    """
+    if not caminho.exists():
+        return
+    for linha in caminho.read_text(encoding="utf-8").splitlines():
+        linha = linha.strip()
+        if not linha or linha.startswith("#") or "=" not in linha:
+            continue
+        chave, valor = linha.split("=", 1)
+        os.environ.setdefault(chave.strip(), valor.strip().strip('"').strip("'"))
+
+
+_carregar_env(BASE_DIR / ".env")
+
+
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/6.1/howto/deployment/checklist/
 
@@ -34,6 +53,9 @@ ALLOWED_HOSTS = [
     if host.strip()
 ]
 CSRF_TRUSTED_ORIGINS = ["https://*.trycloudflare.com"]
+# O cloudflared avisa que o acesso original foi por HTTPS: assim os links dos
+# e-mails (confirmacao, redefinir senha) saem com https:// quando vem do tunel.
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 
 
 # Application definition
@@ -130,7 +152,35 @@ STATIC_URL = 'static/'
 # Email
 # https://docs.djangoproject.com/en/6.1/topics/email/#topic-email-configuration
 
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+# Com EMAIL_HOST_USER e EMAIL_HOST_PASSWORD no .env, envia de verdade pelo
+# Gmail (gratis, ~500 e-mails/dia). Sem eles, os e-mails aparecem no terminal.
+EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER", "")
+EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD", "").replace(" ", "")
+if EMAIL_HOST_USER and EMAIL_HOST_PASSWORD:
+    EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+    EMAIL_HOST = os.environ.get("EMAIL_HOST", "smtp.gmail.com")
+    EMAIL_PORT = int(os.environ.get("EMAIL_PORT", "587"))
+    EMAIL_USE_TLS = True
+    DEFAULT_FROM_EMAIL = f"BarberHouse <{EMAIL_HOST_USER}>"
+else:
+    EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+    DEFAULT_FROM_EMAIL = "BarberHouse <nao-responda@barberhouse.local>"
+EMAIL_TIMEOUT = 10
+
+# Teto de seguranca: passou disso no dia, o sistema para de enviar (e registra).
+EMAIL_LIMITE_DIARIO = int(os.environ.get("EMAIL_LIMITE_DIARIO", "100"))
+
+# Endereco usado nos links dos e-mails enviados fora de uma requisicao
+# (lembretes). Com o tunel do cloudflared, coloque a URL dele no .env.
+SITE_URL = os.environ.get("SITE_URL", "http://127.0.0.1:8000").rstrip("/")
+
+# Lembretes 24h antes: enquanto o runserver estiver rodando, uma tarefa em
+# segundo plano verifica a cada LEMBRETES_INTERVALO_MIN minutos.
+LEMBRETES_AUTOMATICOS = os.environ.get("LEMBRETES_AUTOMATICOS", "True").lower() == "true"
+LEMBRETES_INTERVALO_MIN = int(os.environ.get("LEMBRETES_INTERVALO_MIN", "10"))
+
+# Validade do link de "redefinir senha" (o de confirmar e-mail vale 24h)
+PASSWORD_RESET_TIMEOUT = 60 * 60 * 2
 
 
 LOGIN_URL = 'login'

@@ -10,6 +10,13 @@
             <div><dt>Cancelado por</dt><dd>{{ agendamento.get_cancelado_por_display|default:"Não registrado" }}</dd></div>
         {% endif %}
     </dl>
+    {% if agendamento.avaliacao %}
+        <div class="avaliacao-item">
+            <span class="avaliacao-rotulo">Avaliação do cliente</span>
+            {% include '_estrelas.html' with nota=agendamento.avaliacao.nota %}
+            {% if agendamento.avaliacao.comentario %}<p class="avaliacao-comentario">“{{ agendamento.avaliacao.comentario }}”</p>{% endif %}
+        </div>
+    {% endif %}
     {% if agendamento.cupom_aplicado %}
         <p class="cupom-aplicado"><i class="fa-solid fa-ticket" aria-hidden="true"></i> Cupom de 15% aplicado</p>
     {% endif %}

@@ -25,7 +25,7 @@
                 <select id="profissional" name="profissional" required>
                     <option value="">Selecione um profissional</option>
                     {% for profissional in profissionais %}
-                    <option value="{{ profissional.id }}">{{ profissional.nome }}</option>
+                    <option value="{{ profissional.id }}">{{ profissional.nome }}{% if profissional.total_avaliacoes %} · ★ {{ profissional.media_avaliacoes|floatformat:1 }} ({{ profissional.total_avaliacoes }}){% endif %}</option>
                     {% endfor %}
                 </select>
             </div>

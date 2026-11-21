@@ -1,0 +1,42 @@
+{% extends 'base_app.html' %}
+
+{% block titulo %}Avaliar atendimento - BarberHouse{% endblock %}
+{% block classe_fundo %}fundo-agendamentos{% endblock %}
+{% block titulo_pagina %}Avaliar atendimento{% endblock %}
+{% block subtitulo_pagina %}Conte como foi. Sua nota ajuda outros clientes a escolher.{% endblock %}
+
+{% block conteudo %}
+    <section class="painel">
+        <dl class="agendamento-detalhes avaliacao-resumo">
+            <div><dt>Serviço</dt><dd>{{ agendamento.servico.nome }}</dd></div>
+            <div><dt>Profissional</dt><dd>{{ agendamento.profissional.nome }}</dd></div>
+            <div><dt>Data</dt><dd>{{ agendamento.data_hora|date:"d/m/Y H:i" }}</dd></div>
+        </dl>
+
+        <form method="post" class="form-avaliacao">
+            {% csrf_token %}
+
+            {# Estrelas: radios em ordem inversa (5 a 1) para o CSS acender as anteriores #}
+            <fieldset class="campo campo-estrelas">
+                <legend class="rotulo-campo">Sua nota</legend>
+                <div class="estrelas-escolha">
+                    {% for n in "54321" %}
+                        <input type="radio" id="nota{{ n }}" name="nota" value="{{ n }}"{% if form.nota.value|stringformat:"s" == n %} checked{% endif %} required>
+                        <label for="nota{{ n }}" title="{{ n }} de 5"><i class="fa-solid fa-star" aria-hidden="true"></i><span class="sr-only">{{ n }} de 5 estrelas</span></label>
+                    {% endfor %}
+                </div>
+                {% for error in form.nota.errors %}<small class="erro-campo">{{ error }}</small>{% endfor %}
+            </fieldset>
+
+            <div class="campo">
+                <label for="comentario">Comentário <span class="opcional">(opcional)</span></label>
+                <textarea id="comentario" name="comentario" rows="4" maxlength="500" placeholder="O que você achou do corte e do atendimento?">{{ form.comentario.value|default:'' }}</textarea>
+                {% for error in form.comentario.errors %}<small class="erro-campo">{{ error }}</small>{% endfor %}
+            </div>
+
+            <button type="submit" class="botao-principal">Enviar avaliação</button>
+        </form>
+    </section>
+
+    <a href="{% url 'meus_agendamentos' %}" class="botao-voltar">← Voltar para meus agendamentos</a>
+{% endblock %}

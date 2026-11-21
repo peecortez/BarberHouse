@@ -1,0 +1,9 @@
+{% extends 'base_auth.html' %}
+
+{% block titulo %}Senha alterada - BarberHouse{% endblock %}
+
+{% block conteudo %}
+    <h1>Senha <span class="destaque">alterada</span></h1>
+    <p class="subtitulo">Pronto! Agora entre com sua nova senha.</p>
+    <a href="{% url 'login' %}" class="botao-principal">Entrar</a>
+{% endblock %}

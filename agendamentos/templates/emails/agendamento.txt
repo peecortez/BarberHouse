@@ -1,0 +1,21 @@
+{% autoescape off %}{% if evento == 'criado' %}Horário reservado!
+
+Olá{% if nome %}, {{ nome }}{% endif %}. Recebemos seu agendamento. Você recebe outro e-mail quando o profissional confirmar.{% elif evento == 'confirmado' %}Horário confirmado
+
+Olá{% if nome %}, {{ nome }}{% endif %}. {{ agendamento.profissional.nome }} confirmou seu horário. Até lá!{% elif evento == 'cancelado' %}Agendamento cancelado
+
+{% if cancelado_pelo_profissional %}Olá{% if nome %}, {{ nome }}{% endif %}. Infelizmente {{ agendamento.profissional.nome }} precisou cancelar este horário. Que tal escolher outro?{% else %}Olá{% if nome %}, {{ nome }}{% endif %}. Seu cancelamento foi registrado. Quando quiser, é só agendar de novo.{% endif %}{% elif evento == 'concluido' %}Obrigado pela visita{% if nome %}, {{ nome }}{% endif %}!
+
+Seu atendimento foi concluído. Conta pra gente como foi: leva menos de um minuto e ajuda outros clientes a escolher.{% elif evento == 'lembrete' %}Seu horário é {{ quando }}
+
+Olá{% if nome %}, {{ nome }}{% endif %}. Passando para lembrar do seu horário na BarberHouse. Se não puder ir, cancele pelo site para liberar o horário.{% endif %}
+
+Serviço: {{ agendamento.servico.nome }}
+Profissional: {{ agendamento.profissional.nome }}
+Data e hora: {{ agendamento.data_hora|date:"l, d/m/Y" }} às {{ agendamento.data_hora|date:"H:i" }}
+Valor: R$ {{ agendamento.servico.preco }}
+
+{{ botao.texto }}: {{ botao.url }}
+
+BarberHouse
+{% endautoescape %}

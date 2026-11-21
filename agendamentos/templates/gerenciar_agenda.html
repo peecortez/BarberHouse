@@ -20,6 +20,19 @@
         </div>
     </section>
 
+    <section class="painel media-avaliacoes">
+        <span class="rotulo-campo">Avaliação dos clientes</span>
+        {% if avaliacoes.total %}
+            <p class="media-avaliacoes-valor">
+                <span class="media-numero">{{ avaliacoes.media|floatformat:1 }}</span>
+                <span class="estrelas" aria-hidden="true"><i class="fa-solid fa-star"></i></span>
+                <span class="media-total">{{ avaliacoes.total }} avaliaç{{ avaliacoes.total|pluralize:"ão,ões" }}</span>
+            </p>
+        {% else %}
+            <p class="media-total">Você ainda não recebeu avaliações. Elas aparecem aqui quando os clientes avaliam atendimentos concluídos.</p>
+        {% endif %}
+    </section>
+
     {% if agendamentos_ativos %}
         <section class="grupo-agendamentos">
             <h2>Agendamentos ativos <span class="grupo-contagem">{{ agendamentos_ativos|length }}</span></h2>

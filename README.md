@@ -5,6 +5,11 @@ Sistema web para gerenciamento de uma barbearia, desenvolvido com Django. Client
 ## Funcionalidades
 
 - Cadastro e login de clientes e profissionais, com CPF validado (dígitos verificadores e unicidade), previsto para validação de cupons e promoções.
+- Confirmação de e-mail no cadastro: a conta só é ativada pelo link enviado ao e-mail cadastrado (vale 24h). Quem tenta entrar antes de confirmar vê um botão para reenviar o link.
+- Recuperação de senha: "Esqueceu a senha?" no login envia um link para criar uma nova senha (vale 2h e só pode ser usado uma vez).
+- E-mails de agendamento para o cliente: horário reservado, confirmado pelo profissional, cancelado (com texto diferente se quem cancelou foi o profissional) e concluído (com o convite para avaliar).
+- Lembrete por e-mail 24h antes do horário, para quem marcou com mais de um dia de antecedência. Cada agendamento recebe no máximo um.
+- Avaliação do atendimento: depois de concluído, o cliente dá de 1 a 5 estrelas e um comentário opcional (uma vez por atendimento). O profissional vê a média e os comentários em "Minha agenda", e o cliente vê a média de cada profissional na hora de agendar.
 - Cadastro de serviços pelo painel administrativo do Django.
 - Consulta de horários disponíveis por serviço, profissional e data.
 - Criação e acompanhamento de agendamentos.
@@ -84,13 +89,63 @@ python manage.py createsuperuser
 
 Cadastre serviços pelo painel administrativo antes de realizar agendamentos.
 
+### E-mails (Gmail, sem custo)
+
+Sem configuração nenhuma, os e-mails aparecem **no terminal** do `runserver`, inclusive os links de confirmação e de redefinir senha. Para enviar de verdade:
+
+1. Use uma conta Gmail (de preferência uma só do projeto) com a **verificação em duas etapas** ativada.
+2. Gere uma **senha de app** em <https://myaccount.google.com/apppasswords>. É uma senha de 16 letras, diferente da senha da conta.
+3. Crie um arquivo `.env` na mesma pasta do `manage.py` com:
+
+   ```text
+   EMAIL_HOST_USER=sua.conta@gmail.com
+   EMAIL_HOST_PASSWORD=abcdabcdabcdabcd
+   ```
+
+4. Reinicie o `runserver`.
+
+Para quem acessa pelo túnel do `cloudflared`, coloque também `SITE_URL=https://xxxx.trycloudflare.com` no `.env`, para os links dos lembretes apontarem para o túnel. Os outros e-mails já usam o endereço por onde a pessoa acessou.
+
+**Custos e segurança:**
+
+- O Gmail por SMTP é gratuito (cerca de 500 e-mails por dia). Não existe cobrança: o pior caso é o Google pausar o envio por algumas horas.
+- O `.env` está no `.gitignore`, então a senha de app nunca vai para o GitHub. Se a senha vazar, revogue em <https://myaccount.google.com/apppasswords> e gere outra.
+- Teto diário de envios (`EMAIL_LIMITE_DIARIO`, padrão 100). Passou disso, o sistema para de enviar e registra no log.
+- E-mails que qualquer pessoa pode pedir (reenviar confirmação, redefinir senha) têm limite de 1 por minuto e 5 por dia para cada endereço. Essas telas dão a mesma resposta exista ou não a conta.
+- Os e-mails só vão para o endereço do próprio usuário cadastrado. Não existe tela onde se digite um destinatário.
+- Todo envio fica registrado em **E-mails enviados**, no painel administrativo.
+- Se o envio falhar (sem internet, senha errada), a ação no site continua normalmente e o erro vai para o log.
+
+**Lembretes:** com o `runserver` ligado, uma tarefa em segundo plano verifica a cada 10 minutos (`LEMBRETES_INTERVALO_MIN`) os horários das próximas 24h. Para rodar na mão, ou pelo Agendador de Tarefas do Windows:
+
+```bash
+python manage.py enviar_lembretes
+```
+
+### Resetar o banco para uma apresentação
+
+```bash
+python manage.py resetar_demo
+```
+
+O comando apaga clientes, profissionais, agendamentos, avaliações, sessões e o registro de e-mails enviados (sem backup: os dados apagados não voltam) e cria 4 profissionais de demonstração com a senha `barber123`:
+
+| Profissional  | E-mail                   |
+|---------------|--------------------------|
+| Rafael Souza  | rafael@barberhouse.com   |
+| Bruno Lima    | bruno@barberhouse.com    |
+| Diego Martins | diego@barberhouse.com    |
+| Thiago Alves  | thiago@barberhouse.com   |
+
+Os superusuários (admin) e os serviços continuam.
+
 ## Fluxo de uso
 
 1. Crie uma conta como cliente ou profissional pela página de cadastro.
-2. Entre com o e-mail e a senha cadastrados.
+2. Confirme o e-mail pelo link recebido e entre com o e-mail e a senha cadastrados.
 3. Como profissional, cadastre ou solicite que um administrador cadastre serviços e gerencie os agendamentos recebidos. A agenda começa aberta e pode ser fechada na interface.
 4. Como cliente, escolha um serviço, um profissional disponível, uma data e um horário para agendar.
-5. Acompanhe ou cancele seus agendamentos na área correspondente.
+5. Acompanhe ou cancele seus agendamentos na área correspondente. Depois de concluído, avalie o atendimento.
 
 Os horários são oferecidos em intervalos de 30 minutos entre 8h e 18h, considerando a duração do serviço e os agendamentos existentes.
 
@@ -99,6 +154,12 @@ Os horários são oferecidos em intervalos de 30 minutos entre 8h e 18h, conside
 ```text
 BarberHouse/
 ├── agendamentos/       # Modelos, telas, formulários, rotas e arquivos estáticos
+│   ├── emails.py       # Envio de e-mails (teto diário, limite por endereço, registro)
+│   ├── lembretes.py    # Lembretes de 24h e a verificação em segundo plano
+│   ├── templates/emails/  # Modelos dos e-mails (HTML + texto)
+│   └── management/commands/
+│       ├── resetar_demo.py      # Limpa o banco para apresentação
+│       └── enviar_lembretes.py  # Envia os lembretes pendentes na mão
 ├── barbearia/          # Configurações e rotas principais do Django
 ├── manage.py           # Utilitário de administração do Django
 └── db.sqlite3          # Banco SQLite local (criado/atualizado pelas migrações)
@@ -111,6 +172,8 @@ As telas herdam de um layout comum em `agendamentos/templates/`:
 - `base.html`: esqueleto de todas as páginas (viewport, fontes Geist e DM Sans, CSS, ícones e notificações).
 - `base_auth.html`: login e cadastro, com o card centralizado.
 - `base_app.html`: telas internas, com a barra de navegação fixa (links conforme o perfil, link ativo destacado e botão Sair).
+- `recuperar_senha.html`, `recuperar_senha_enviado.html`, `redefinir_senha.html` e `redefinir_senha_concluido.html`: o fluxo de "Esqueceu a senha?", sobre `base_auth.html`.
+- `avaliar.html`: a nota em estrelas e o comentário do atendimento. `_estrelas.html` mostra uma nota já dada.
 - `_logo.html`: o logo do login, do cadastro e da abertura, incluído com `{% include '_logo.html' with tamanho='auth' %}`. Os tamanhos são `auth` e `abertura`. Com `slogan=True`, mostra também "barbearia & estilo".
 
 O tipo do usuário logado (`cliente` ou `profissional`) e o primeiro nome dele chegam a todos os templates como `tipo_usuario` e `primeiro_nome`, pelo context processor `agendamentos/context_processors.py`. O JavaScript das telas fica em `agendamentos/static/agendamentos/menu.js`, e os estilos em `barbearia.css`.

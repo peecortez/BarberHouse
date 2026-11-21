@@ -1,0 +1,43 @@
+{% extends 'base_auth.html' %}
+
+{% block titulo %}Nova senha - BarberHouse{% endblock %}
+{% block texto_carregando %}Salvando sua nova senha...{% endblock %}
+
+{% block conteudo %}
+    {% if validlink %}
+        <h1>Crie uma <span class="destaque">nova senha</span></h1>
+        <p class="subtitulo">Escolha uma senha que você não use em outros sites.</p>
+
+        {% for error in form.non_field_errors %}
+            <p class="mensagem erro">{{ error }}</p>
+        {% endfor %}
+
+        <form method="post" id="formRedefinirSenha" data-carregando>
+            {% csrf_token %}
+            <div class="campo">
+                <label for="id_new_password1">Nova senha</label>
+                <div class="senha-controle">
+                    <input type="password" id="id_new_password1" name="new_password1" placeholder="Digite a nova senha" autocomplete="new-password" required autofocus>
+                    <button type="button" class="botao-olho" data-alternar-senha="id_new_password1" aria-label="Mostrar senha" aria-pressed="false">
+                        <i class="fa-solid fa-eye" aria-hidden="true"></i>
+                    </button>
+                </div>
+                {% for error in form.new_password1.errors %}<small class="erro-campo">{{ error }}</small>{% endfor %}
+            </div>
+
+            <div class="campo">
+                <label for="id_new_password2">Confirmar nova senha</label>
+                <input type="password" id="id_new_password2" name="new_password2" placeholder="Digite novamente" autocomplete="new-password" aria-describedby="senhaFeedback" aria-invalid="false" required>
+                {% for error in form.new_password2.errors %}<small class="erro-campo">{{ error }}</small>{% endfor %}
+                <small id="senhaFeedback" class="feedback-senha" aria-live="polite" role="status"></small>
+            </div>
+
+            <button type="submit" class="botao-principal">Salvar nova senha</button>
+        </form>
+    {% else %}
+        <h1>Link <span class="destaque">expirado</span></h1>
+        <p class="subtitulo">Este link de redefinição já foi usado ou passou do prazo de 2 horas.</p>
+        <a href="{% url 'password_reset' %}" class="botao-principal">Pedir um novo link</a>
+        <a href="{% url 'login' %}" class="botao-voltar">← Voltar para o login</a>
+    {% endif %}
+{% endblock %}

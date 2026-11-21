@@ -1,6 +1,6 @@
 ﻿from django.contrib import admin
 
-from .models import Agendamento, Cliente, Profissional, Servico
+from .models import Agendamento, Avaliacao, Cliente, EmailEnviado, Profissional, Servico
 
 
 @admin.register(Cliente)
@@ -24,6 +24,29 @@ class ServicoAdmin(admin.ModelAdmin):
 
 @admin.register(Agendamento)
 class AgendamentoAdmin(admin.ModelAdmin):
-    list_display = ("data_hora", "cliente", "profissional", "servico", "status", "cancelado_por")
+    list_display = ("data_hora", "cliente", "profissional", "servico", "status", "cancelado_por", "lembrete_enviado_em")
     list_filter = ("status", "data_hora")
     search_fields = ("cliente__nome", "profissional__nome", "servico__nome")
+
+
+@admin.register(Avaliacao)
+class AvaliacaoAdmin(admin.ModelAdmin):
+    list_display = ("criado_em", "nota", "profissional", "cliente", "comentario")
+    list_filter = ("nota",)
+    search_fields = ("agendamento__profissional__nome", "agendamento__cliente__nome", "comentario")
+
+    @admin.display(description="Profissional")
+    def profissional(self, obj):
+        return obj.agendamento.profissional.nome
+
+    @admin.display(description="Cliente")
+    def cliente(self, obj):
+        return obj.agendamento.cliente.nome
+
+
+@admin.register(EmailEnviado)
+class EmailEnviadoAdmin(admin.ModelAdmin):
+    """Historico de envios: mostra quanto do teto diario ja foi usado."""
+    list_display = ("enviado_em", "tipo", "destinatario", "assunto", "sucesso")
+    list_filter = ("tipo", "sucesso", "enviado_em")
+    search_fields = ("destinatario",)

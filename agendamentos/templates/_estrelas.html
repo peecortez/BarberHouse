@@ -1,0 +1,2 @@
+{# Mostra uma nota de 1 a 5 em estrelas. Uso: {% include '_estrelas.html' with nota=... %} #}
+<span class="estrelas" role="img" aria-label="{{ nota }} de 5 estrelas">{% for i in "12345" %}<i class="{% if forloop.counter <= nota %}fa-solid{% else %}fa-regular{% endif %} fa-star" aria-hidden="true"></i>{% endfor %}</span>

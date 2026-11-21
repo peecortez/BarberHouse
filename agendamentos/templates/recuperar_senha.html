@@ -1,0 +1,26 @@
+{% extends 'base_auth.html' %}
+
+{% block titulo %}Recuperar senha - BarberHouse{% endblock %}
+{% block texto_carregando %}Enviando o link...{% endblock %}
+
+{% block conteudo %}
+    <h1>Esqueceu a <span class="destaque">senha</span>?</h1>
+    <p class="subtitulo">Informe o e-mail da sua conta. Vamos enviar um link para você criar uma nova senha.</p>
+
+    {% for error in form.non_field_errors %}
+        <p class="mensagem erro">{{ error }}</p>
+    {% endfor %}
+
+    <form method="post" data-carregando>
+        {% csrf_token %}
+        <div class="campo">
+            <label for="email">E-mail</label>
+            <input type="email" id="email" name="email" value="{{ form.email.value|default:'' }}" placeholder="Digite seu e-mail" autocomplete="email" maxlength="254" required autofocus>
+            {% for error in form.email.errors %}<small class="erro-campo">{{ error }}</small>{% endfor %}
+        </div>
+
+        <button type="submit" class="botao-principal">Enviar link</button>
+    </form>
+
+    <a href="{% url 'login' %}" class="botao-voltar">← Voltar para o login</a>
+{% endblock %}

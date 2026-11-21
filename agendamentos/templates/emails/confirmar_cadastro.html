@@ -1,0 +1,7 @@
+{% extends 'emails/_base.html' %}
+{% block conteudo %}
+<h1 style="margin:0 0 12px;font-size:24px;line-height:30px;font-weight:600;color:#ffffff;">Confirme seu e-mail{% if nome %}, {{ nome }}{% endif %}</h1>
+<p style="margin:0;font-size:15px;line-height:23px;color:#c2c2c2;">Falta só um passo para ativar sua conta na BarberHouse. Toque no botão abaixo para confirmar que este e-mail é seu.</p>
+{% include 'emails/_botao.html' with texto='Confirmar e-mail' url=link %}
+<p style="margin:20px 0 0;font-size:13px;line-height:20px;color:#8f8f8f;">O link vale por 24 horas. Se você não criou esta conta, ignore este e-mail.</p>
+{% endblock %}

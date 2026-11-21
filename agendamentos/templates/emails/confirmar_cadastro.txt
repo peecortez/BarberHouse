@@ -1,0 +1,10 @@
+{% autoescape off %}Olá{% if nome %}, {{ nome }}{% endif %}!
+
+Falta só um passo para ativar sua conta na BarberHouse. Abra o link abaixo para confirmar que este e-mail é seu:
+
+{{ link }}
+
+O link vale por 24 horas. Se você não criou esta conta, ignore este e-mail.
+
+BarberHouse
+{% endautoescape %}
