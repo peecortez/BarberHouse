@@ -1,0 +1,14 @@
+{% extends 'base_auth.html' %}
+
+{% block titulo %}Confira seu e-mail - BarberHouse{% endblock %}
+
+{% block conteudo %}
+    <h1>Confira seu <span class="destaque">e-mail</span></h1>
+    {# Mesma mensagem para qualquer e-mail: a tela nao revela quem tem conta #}
+    <p class="subtitulo">Se existir uma conta com esse e-mail, enviamos um link para criar uma nova senha. Ele vale por 2 horas.</p>
+
+    <p class="mensagem">Não chegou? Confira a pasta de spam ou aguarde um minuto e peça de novo.</p>
+
+    <a href="{% url 'login' %}" class="botao-principal">Voltar para o login</a>
+    <a href="{% url 'password_reset' %}" class="botao-voltar">Pedir outro link</a>
+{% endblock %}

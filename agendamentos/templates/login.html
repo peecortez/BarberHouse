@@ -11,12 +11,21 @@
         <p class="mensagem {{ message.tags }}">{{ message }}</p>
     {% endfor %}
 
+    {% if email_pendente %}
+        <form method="post" action="{% url 'reenviar_confirmacao' %}" class="reenviar-confirmacao">
+            {% csrf_token %}
+            <input type="hidden" name="email" value="{{ email_pendente }}">
+            <button type="submit" class="botao-secundario"><i class="fa-regular fa-envelope" aria-hidden="true"></i> Reenviar e-mail de confirmação</button>
+        </form>
+    {% endif %}
+
     <form method="post" id="formLogin" data-carregando>
         {% csrf_token %}
+        {% if next %}<input type="hidden" name="next" value="{{ next }}">{% endif %}
 
         <div class="campo">
             <label for="email">E-mail</label>
-            <input type="email" id="email" name="email" placeholder="Digite seu e-mail" autocomplete="email" required>
+            <input type="email" id="email" name="email" value="{{ email_digitado|default:'' }}" placeholder="Digite seu e-mail" autocomplete="username" required>
         </div>
 
         <div class="campo">
@@ -27,6 +36,7 @@
                     <i class="fa-solid fa-eye" aria-hidden="true"></i>
                 </button>
             </div>
+            <a href="{% url 'password_reset' %}" class="link-esqueci">Esqueceu a senha?</a>
         </div>
 
         <button type="submit" class="botao-principal">Entrar</button>

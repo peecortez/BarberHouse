@@ -16,7 +16,9 @@ Contexto do projeto para o Claude Code. O README explica o que o sistema faz e c
 
 - Windows. O Python não está no PATH: use `.\venv\Scripts\python.exe`.
 - O repositório git é esta pasta (`BarberHouse\BarberHouse`), não a pasta de fora.
-- Testes: `.\venv\Scripts\python.exe manage.py test agendamentos` (44 testes, todos passando na última vez).
+- Testes: `.\venv\Scripts\python.exe manage.py test agendamentos` (81 testes, todos passando na última vez).
+- E-mail: credenciais do Gmail só no `.env` (no `.gitignore`; sem arquivo de modelo: o projeto só roda na máquina do usuário). Sem `.env`, os e-mails saem no console. Todo envio passa por `agendamentos/emails.py::enviar` (teto diário e registro em `EmailEnviado`). Nunca enviar direto com `send_mail`.
+- Contas novas nascem `is_active=False` até confirmar o e-mail. Usuários criados com `create_user` nos testes já são ativos.
 - Servidor: `.\venv\Scripts\python.exe manage.py runserver`.
 
 ## Estrutura do front

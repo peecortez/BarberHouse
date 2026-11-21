@@ -5,14 +5,34 @@ from django.contrib.auth import login
 from django.contrib.auth.views import LogoutView
 from django.contrib.auth import authenticate
 from django.contrib.auth.decorators import login_required
-from .forms import CadastroForm, AgendamentoForm
-from .models import Cliente, Profissional, Servico, Agendamento
+from .emails import (
+    bloqueado_para_destinatario,
+    enviar_aviso_agendamento,
+    enviar_confirmacao_cadastro,
+    ler_token_confirmacao,
+)
+from .forms import AvaliacaoForm, CadastroForm, AgendamentoForm
+from .models import Avaliacao, Cliente, Profissional, Servico, Agendamento
 from django.contrib import messages
+from django.db.models import Avg, Count
 from django.http import JsonResponse
-from django.views.decorators.http import require_http_methods
+from django.utils.http import url_has_allowed_host_and_scheme
+from django.views.decorators.http import require_http_methods, require_POST
 import json
 from datetime import datetime, time, timedelta
 from django.utils import timezone
+
+
+def _nome_do_perfil(usuario):
+    perfil = getattr(usuario, 'cliente', None) or getattr(usuario, 'profissional', None)
+    return perfil.nome if perfil else ''
+
+
+def _com_media_de_avaliacoes(profissionais):
+    return profissionais.annotate(
+        media_avaliacoes=Avg('agendamento__avaliacao__nota'),
+        total_avaliacoes=Count('agendamento__avaliacao'),
+    )
 
 
 def _tem_conflito(profissional, servico, inicio):
@@ -35,10 +55,12 @@ def cadastro(request):
             dados = form.cleaned_data
             try:
                 with transaction.atomic():
+                    # A conta so e ativada quando a pessoa clica no link do e-mail
                     usuario = User.objects.create_user(
                         username=dados["email"],
                         email=dados["email"],
-                        password=dados["senha"]
+                        password=dados["senha"],
+                        is_active=False,
                     )
                     perfil = Cliente if dados["tipo"] == "cliente" else Profissional
                     perfil.objects.create(
@@ -51,7 +73,18 @@ def cadastro(request):
             except IntegrityError:
                 form.add_error(None, "E-mail ou CPF já cadastrado. Entre ou use outros dados.")
             else:
-                messages.success(request, "Conta criada com sucesso! Faca login para continuar.")
+                if enviar_confirmacao_cadastro(request, usuario, dados["nome"]):
+                    messages.success(
+                        request,
+                        f"Conta criada! Enviamos um link de confirmação para {usuario.email}. "
+                        "Abra o e-mail para ativar sua conta (confira também o spam).",
+                    )
+                else:
+                    messages.warning(
+                        request,
+                        "Conta criada, mas não conseguimos enviar o e-mail de confirmação agora. "
+                        "Entre com seu e-mail e senha para tentar de novo.",
+                    )
                 return redirect("login")
         else:
             messages.error(request, "Por favor, corrija os erros no formulario.")
@@ -59,19 +92,68 @@ def cadastro(request):
         form = CadastroForm()
     return render(request, "cadastro.html", {"form": form})
 def login_view(request):
+    # "next": quem veio de um link (ex.: "Avaliar atendimento" no e-mail) volta para la
+    destino = request.POST.get('next') or request.GET.get('next') or ''
+    if not url_has_allowed_host_and_scheme(destino, allowed_hosts={request.get_host()},
+                                           require_https=request.is_secure()):
+        destino = ''
+    contexto = {'next': destino}
+
     if request.method == 'POST':
-        email = request.POST.get('email')
-        senha = request.POST.get('senha')
-        usuario = authenticate(request, username=email, password=senha)
+        email = (request.POST.get('email') or '').strip()
+        senha = request.POST.get('senha') or ''
+        contexto['email_digitado'] = email
+        # E-mail sem diferenca de maiusculas (o celular as vezes poe a primeira letra maiuscula)
+        conta = User.objects.filter(username__iexact=email).only('username').first()
+        usuario = authenticate(request, username=conta.username if conta else email, password=senha)
         if usuario is not None:
             login(request, usuario)
+            messages.success(request, 'Login realizado com sucesso!')
+            if destino:
+                return redirect(destino)
             # A home mostra a abertura da marca uma unica vez, logo apos o login
             request.session['abertura_marca'] = True
-            messages.success(request, 'Login realizado com sucesso!')
             return redirect('home')
+
+        # Senha certa, mas o e-mail ainda nao foi confirmado: oferece reenviar o link
+        pendente = User.objects.filter(
+            username__iexact=email, is_active=False, last_login__isnull=True,
+        ).first()
+        if pendente is not None and pendente.check_password(senha):
+            messages.warning(request, 'Confirme seu e-mail antes de entrar. Procure o link na sua caixa de entrada (e no spam).')
+            contexto['email_pendente'] = pendente.email
         else:
-            messages.error(request, 'Senha incorreta')
-    return render(request, 'login.html')
+            messages.error(request, 'E-mail ou senha incorretos.')
+    return render(request, 'login.html', contexto)
+
+
+def confirmar_email(request, token):
+    """Link do e-mail de cadastro: ativa a conta."""
+    usuario_id = ler_token_confirmacao(token)
+    usuario = User.objects.filter(pk=usuario_id).first() if usuario_id else None
+    # last_login preenchido = conta ja usada e desativada pelo admin: o link nao reativa
+    if usuario is None or (not usuario.is_active and usuario.last_login is not None):
+        messages.error(request, 'Link inválido ou expirado. Entre com seu e-mail e senha para receber um novo.')
+    elif usuario.is_active:
+        messages.success(request, 'Seu e-mail já estava confirmado. É só entrar.')
+    else:
+        usuario.is_active = True
+        usuario.save(update_fields=['is_active'])
+        messages.success(request, 'E-mail confirmado! Agora é só entrar.')
+    return redirect('login')
+
+
+@require_POST
+def reenviar_confirmacao(request):
+    email = (request.POST.get('email') or '').strip()
+    usuario = User.objects.filter(
+        username__iexact=email, is_active=False, last_login__isnull=True,
+    ).first()
+    if usuario is not None and not bloqueado_para_destinatario(usuario.email, 'confirmacao'):
+        enviar_confirmacao_cadastro(request, usuario, _nome_do_perfil(usuario))
+    # Mesma resposta em todos os casos: a tela nao revela quais e-mails tem cadastro
+    messages.success(request, 'Se houver um cadastro pendente para esse e-mail, enviamos um novo link. Se não chegar, aguarde um minuto e tente de novo.')
+    return redirect('login')
 
 
 @login_required
@@ -93,7 +175,7 @@ def agenda_cliente(request):
 
     cliente = request.user.cliente
     servicos = Servico.objects.all()
-    profissionais = Profissional.objects.filter(agenda_aberta=True)
+    profissionais = _com_media_de_avaliacoes(Profissional.objects.filter(agenda_aberta=True))
     from datetime import date
     context = {
         "cliente": cliente,
@@ -199,6 +281,7 @@ def agendar_servico(request):
         servico=servico,
         data_hora=data_hora
     )
+    enviar_aviso_agendamento(request, agendamento, 'criado')
     if is_json:
         return JsonResponse({
             "success": True,
@@ -217,7 +300,7 @@ def meus_agendamentos(request):
     if hasattr(request.user, 'cliente'):
         agendamentos = Agendamento.objects.filter(
             cliente=request.user.cliente
-        ).select_related('servico', 'profissional').order_by('data_hora')
+        ).select_related('servico', 'profissional', 'avaliacao').order_by('data_hora')
         tipo = 'cliente'
     else:
         agendamentos = Agendamento.objects.none()
@@ -245,9 +328,13 @@ def gerenciar_agenda(request):
     profissional = request.user.profissional
     agendamentos = Agendamento.objects.filter(
         profissional=profissional
-    ).select_related('servico', 'cliente').order_by('data_hora')
+    ).select_related('servico', 'cliente', 'avaliacao').order_by('data_hora')
+    avaliacoes = Avaliacao.objects.filter(agendamento__profissional=profissional).aggregate(
+        media=Avg('nota'), total=Count('id'),
+    )
     context = {
         'profissional': profissional,
+        'avaliacoes': avaliacoes,
         'agendamentos': agendamentos,
         'agendamentos_ativos': agendamentos.filter(
             status__in=[Agendamento.Status.AGENDADO, Agendamento.Status.CONFIRMADO]
@@ -360,11 +447,48 @@ def atualizar_status(request, agendamento_id):
             agendamento.cupom_aplicado = True
         agendamento.save()
 
+    evento = {'confirmar': 'confirmado', 'cancelar': 'cancelado', 'concluir': 'concluido'}[acao]
+    enviar_aviso_agendamento(request, agendamento, evento)
+
     return JsonResponse({
         'success': True,
         'status': agendamento.get_status_display(),
         'cancelado_por': agendamento.get_cancelado_por_display(),
     })
+
+
+@login_required
+def avaliar_atendimento(request, agendamento_id):
+    """O cliente da de 1 a 5 estrelas (e um comentario opcional) a um atendimento concluido."""
+    cliente = getattr(request.user, 'cliente', None)
+    if cliente is None:
+        messages.error(request, "Só clientes podem avaliar atendimentos.")
+        return redirect('home')
+    agendamento = get_object_or_404(
+        Agendamento.objects.select_related('servico', 'profissional'),
+        id=agendamento_id, cliente=cliente,
+    )
+    if agendamento.status != Agendamento.Status.CONCLUIDO:
+        messages.error(request, "Só dá para avaliar atendimentos concluídos.")
+        return redirect('meus_agendamentos')
+    if hasattr(agendamento, 'avaliacao'):
+        messages.info(request, "Você já avaliou este atendimento. Obrigado!")
+        return redirect('meus_agendamentos')
+
+    if request.method == 'POST':
+        form = AvaliacaoForm(request.POST)
+        if form.is_valid():
+            avaliacao = form.save(commit=False)
+            avaliacao.agendamento = agendamento
+            try:
+                avaliacao.save()
+            except IntegrityError:  # clique duplo: a primeira ja salvou
+                pass
+            messages.success(request, "Obrigado pela avaliação!")
+            return redirect('meus_agendamentos')
+    else:
+        form = AvaliacaoForm()
+    return render(request, 'avaliar.html', {'form': form, 'agendamento': agendamento})
 
 
 def noticias(request):

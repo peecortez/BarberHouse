@@ -170,13 +170,11 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 
-    // Cadastro: mascara de CPF e conferencia da confirmacao de senha
-    const formCadastro = document.getElementById('formCadastro');
-    if (formCadastro) {
-        const campoSenha = document.getElementById('senha');
-        const campoConfirmacao = document.getElementById('senha_confirmacao');
-        const feedbackSenha = document.getElementById('senhaFeedback');
-        const campoCpf = document.getElementById('cpf');
+    // Conferencia "as senhas coincidem" (cadastro e redefinir senha).
+    // Registrada antes do listener do overlay: se bloquear o envio,
+    // o overlay ve o defaultPrevented e nao aparece.
+    function ligarConfirmacaoSenha(form, campoSenha, campoConfirmacao, feedbackSenha) {
+        if (!form || !campoSenha || !campoConfirmacao || !feedbackSenha) return;
 
         function validarConfirmacao(mostrarIncompleta = false) {
             const senha = campoSenha.value;
@@ -205,6 +203,35 @@ document.addEventListener('DOMContentLoaded', function () {
             return !mostrarIncompleta;
         }
 
+        campoSenha.addEventListener('input', () => validarConfirmacao());
+        campoConfirmacao.addEventListener('input', () => validarConfirmacao());
+
+        form.addEventListener('submit', function (event) {
+            if (!validarConfirmacao(true)) {
+                event.preventDefault();
+                campoConfirmacao.focus();
+            }
+        });
+    }
+
+    ligarConfirmacaoSenha(
+        document.getElementById('formRedefinirSenha'),
+        document.getElementById('id_new_password1'),
+        document.getElementById('id_new_password2'),
+        document.getElementById('senhaFeedback'),
+    );
+
+    // Cadastro: mascara de CPF e conferencia da confirmacao de senha
+    const formCadastro = document.getElementById('formCadastro');
+    if (formCadastro) {
+        ligarConfirmacaoSenha(
+            formCadastro,
+            document.getElementById('senha'),
+            document.getElementById('senha_confirmacao'),
+            document.getElementById('senhaFeedback'),
+        );
+
+        const campoCpf = document.getElementById('cpf');
         if (campoCpf) {
             campoCpf.addEventListener('input', function () {
                 const d = this.value.replace(/\D/g, '').slice(0, 11);
@@ -214,18 +241,6 @@ document.addEventListener('DOMContentLoaded', function () {
                     .replace(/\.(\d{3})(\d)/, '.$1-$2');
             });
         }
-
-        campoSenha.addEventListener('input', () => validarConfirmacao());
-        campoConfirmacao.addEventListener('input', () => validarConfirmacao());
-
-        // Registrado antes do listener do overlay: se bloquear o envio,
-        // o overlay ve o defaultPrevented e nao aparece.
-        formCadastro.addEventListener('submit', function (event) {
-            if (!validarConfirmacao(true)) {
-                event.preventDefault();
-                campoConfirmacao.focus();
-            }
-        });
     }
 
     // Overlay "carregando" ao enviar formularios marcados com data-carregando

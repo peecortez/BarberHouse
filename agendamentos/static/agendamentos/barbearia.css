@@ -482,6 +482,80 @@ body.layout-app::after {
     background-color: rgba(255, 255, 255, 0.06);
 }
 
+/* Login: "Esqueceu a senha?" discreto, alinhado a direita abaixo do campo */
+.link-esqueci {
+    align-self: flex-end;
+    margin-top: 8px;
+    padding: 2px 4px;
+    color: var(--cor-texto-2);
+    font-size: 13px;
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+.link-esqueci:hover,
+.link-esqueci:focus-visible {
+    color: var(--cor-acento);
+}
+
+/* Login com e-mail ainda nao confirmado: botao para reenviar o link */
+.reenviar-confirmacao {
+    margin: -4px 0 20px;
+}
+
+.reenviar-confirmacao .botao-secundario {
+    width: 100%;
+}
+
+/* Campo de texto longo (comentario da avaliacao) */
+.campo textarea {
+    width: 100%;
+    min-height: 112px;
+    padding: 14px 20px;
+    background-color: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--vidro-borda);
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.25);
+    border-radius: var(--raio-ui);
+    color: var(--cor-texto);
+    font-family: var(--fonte-texto);
+    font-size: 15px;
+    line-height: 1.5;
+    resize: vertical;
+    transition: border-color 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.campo textarea::placeholder {
+    color: var(--cor-texto-3);
+}
+
+.campo textarea:hover {
+    border-color: var(--cor-borda-forte);
+}
+
+.campo textarea:focus {
+    outline: none;
+    border-color: var(--cor-acento);
+    background-color: rgba(255, 255, 255, 0.06);
+    box-shadow: 0 0 0 3px rgba(226, 160, 83, 0.18);
+}
+
+.opcional {
+    color: var(--cor-texto-3);
+    font-weight: 400;
+}
+
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
 
 /* ============================================================
    Botoes
@@ -1063,6 +1137,130 @@ body.layout-app::after {
     color: var(--cor-acento);
     font-size: 13px;
     font-weight: 500;
+}
+
+/* ============================================================
+   Avaliacoes (estrelas no ambar do acento)
+   ============================================================ */
+.estrelas {
+    display: inline-flex;
+    gap: 3px;
+    color: var(--cor-acento);
+    font-size: 13px;
+}
+
+.estrelas .fa-regular {
+    color: var(--cor-texto-3);
+}
+
+.avaliacao-item {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px 10px;
+    margin-top: 14px;
+}
+
+.avaliacao-rotulo {
+    color: var(--cor-texto-3);
+    font-size: 12px;
+}
+
+.avaliacao-comentario {
+    flex-basis: 100%;
+    color: var(--cor-texto-2);
+    font-size: 14px;
+    font-style: italic;
+}
+
+.avaliacao-resumo {
+    margin: 0 0 24px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--cor-borda);
+}
+
+/* Escolha da nota: radios de 5 a 1 em row-reverse, para a estrela escolhida
+   (e as que ficam a esquerda dela) acenderem com o seletor ~ */
+.campo-estrelas {
+    margin: 0 0 18px;
+    padding: 0;
+    border: 0;
+    min-width: 0;
+}
+
+.estrelas-escolha {
+    display: flex;
+    flex-direction: row-reverse;
+    justify-content: flex-end;
+    gap: 4px;
+}
+
+.estrelas-escolha input {
+    position: absolute;
+    opacity: 0;
+    width: 1px;
+    height: 1px;
+}
+
+.estrelas-escolha label {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 48px;
+    height: 48px;
+    border-radius: var(--raio-pilula);
+    color: rgba(255, 255, 255, 0.18);
+    font-size: 26px;
+    cursor: pointer;
+    transition: color 0.15s ease, transform 0.2s var(--ease-saida);
+}
+
+.estrelas-escolha input:checked ~ label,
+.estrelas-escolha label:hover,
+.estrelas-escolha label:hover ~ label {
+    color: var(--cor-acento);
+}
+
+.estrelas-escolha label:active {
+    transform: scale(0.9);
+}
+
+.estrelas-escolha input:focus-visible + label {
+    box-shadow: 0 0 0 3px rgba(226, 160, 83, 0.35);
+}
+
+/* Minha agenda: media das avaliacoes */
+.media-avaliacoes {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.media-avaliacoes .rotulo-campo {
+    margin-bottom: 0;
+}
+
+.media-avaliacoes-valor {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.media-numero {
+    color: var(--cor-titulo);
+    font-family: var(--fonte-titulo);
+    font-size: 30px;
+    font-weight: 500;
+    line-height: 1;
+}
+
+.media-avaliacoes-valor .estrelas {
+    font-size: 20px;
+}
+
+.media-total {
+    color: var(--cor-texto-2);
+    font-size: 14px;
 }
 
 /* Etiquetas de status com fundo lavado (Tomorro) */
@@ -1693,7 +1891,8 @@ body.com-abertura::after {
 
     /* iPhone: com fonte menor que 16px o Safari da zoom na pagina ao tocar no campo */
     .campo input,
-    .campo select {
+    .campo select,
+    .campo textarea {
         font-size: 16px;
     }
 

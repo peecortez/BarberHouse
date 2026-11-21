@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
+from django.core.validators import MaxValueValidator, MinValueValidator
 
 # Create your models here.
 class Cliente(models.Model):
@@ -68,3 +69,39 @@ class Agendamento(models.Model):
         blank=True,
         default='',
     )
+    # Marcado ao enviar o lembrete de 24h, para nunca mandar duas vezes
+    lembrete_enviado_em = models.DateTimeField(null=True, blank=True)
+
+
+class Avaliacao(models.Model):
+    """Nota de 1 a 5 que o cliente da a um atendimento concluido (uma por agendamento)."""
+
+    agendamento = models.OneToOneField(Agendamento, on_delete=models.CASCADE, related_name='avaliacao')
+    nota = models.PositiveSmallIntegerField(validators=[MinValueValidator(1), MaxValueValidator(5)])
+    comentario = models.TextField(max_length=500, blank=True)
+    criado_em = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = 'avaliação'
+        verbose_name_plural = 'avaliações'
+
+    def __str__(self):
+        return f'{self.nota}/5 - {self.agendamento}'
+
+
+class EmailEnviado(models.Model):
+    """Registro de cada e-mail: serve para o teto diario e o limite por destinatario."""
+
+    destinatario = models.EmailField()
+    tipo = models.CharField(max_length=30)
+    assunto = models.CharField(max_length=200)
+    enviado_em = models.DateTimeField(auto_now_add=True, db_index=True)
+    sucesso = models.BooleanField(default=True)
+
+    class Meta:
+        verbose_name = 'e-mail enviado'
+        verbose_name_plural = 'e-mails enviados'
+        ordering = ['-enviado_em']
+
+    def __str__(self):
+        return f'{self.tipo} -> {self.destinatario}'

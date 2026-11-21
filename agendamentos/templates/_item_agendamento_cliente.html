@@ -11,6 +11,18 @@
             <div><dt>Cancelado por</dt><dd>{{ agendamento.get_cancelado_por_display|default:"Não registrado" }}</dd></div>
         {% endif %}
     </dl>
+    {% if agendamento.status == 'CONCLUIDO' %}
+        {% if agendamento.avaliacao %}
+            <p class="avaliacao-item">
+                <span class="avaliacao-rotulo">Sua avaliação</span>
+                {% include '_estrelas.html' with nota=agendamento.avaliacao.nota %}
+            </p>
+        {% else %}
+            <div class="agendamento-actions">
+                <a href="{% url 'avaliar_atendimento' agendamento.id %}" class="botao-secundario"><i class="fa-regular fa-star" aria-hidden="true"></i> Avaliar atendimento</a>
+            </div>
+        {% endif %}
+    {% endif %}
     {% if agendamento.status == 'AGENDADO' or agendamento.status == 'CONFIRMADO' %}
         <div class="agendamento-actions">
             <button type="button" class="botao-secundario botao-perigo" data-id="{{ agendamento.id }}" data-acao="cancelar">Cancelar</button>

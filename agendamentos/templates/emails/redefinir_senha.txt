@@ -1,0 +1,10 @@
+{% autoescape off %}Olá{% if nome %}, {{ nome }}{% endif %}.
+
+Recebemos um pedido para criar uma nova senha para sua conta na BarberHouse. Abra o link abaixo:
+
+{{ link }}
+
+O link vale por 2 horas e só pode ser usado uma vez. Se não foi você que pediu, ignore este e-mail: sua senha continua a mesma.
+
+BarberHouse
+{% endautoescape %}
