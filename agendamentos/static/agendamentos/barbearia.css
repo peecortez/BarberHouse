@@ -448,6 +448,14 @@ body.layout-app::after {
     color: var(--cor-erro);
 }
 
+/* Aviso discreto abaixo do campo (ex.: comentario da avaliacao aparece na home) */
+.dica-campo {
+    display: block;
+    margin-top: 6px;
+    color: var(--cor-texto-3);
+    font-size: 12.5px;
+}
+
 .feedback-senha.ok {
     color: var(--cor-sucesso);
 }
@@ -1047,6 +1055,214 @@ body.layout-app::after {
 
 
 /* ============================================================
+   Avaliacoes na home do cliente (_avaliacoes_destaque.html)
+   Referencia: Animated Testimonials (Aceternity UI), adaptada ao vidro.
+   - Pilha: o card ativo fica na frente, reto; os outros atras, girados
+     (--giro, sorteado no menu.js), menores e apagados. Na troca o ativo
+     da um pulo (0 -> -80px -> 0) em 0,4s, com origem embaixo.
+   - Texto: entra de baixo e o comentario aparece palavra por palavra,
+     saindo do desfoque (0,2s cada, 0,02s entre palavras).
+   Usa as propriedades individuais rotate/scale/translate: o pulo
+   (translate) anima sem brigar com o giro e a escala (transicao).
+   ============================================================ */
+.avaliacoes-destaque {
+    margin-top: 72px;
+    animation: subir 0.7s var(--ease-saida) 0.3s backwards;
+}
+
+.avaliacoes-titulo {
+    margin-bottom: 28px;
+    color: var(--cor-titulo);
+    font-family: var(--fonte-titulo);
+    font-size: 22px;
+    font-weight: 500;
+    letter-spacing: -0.01em;
+}
+
+.avaliacoes-corpo {
+    display: grid;
+    grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
+    gap: 56px;
+}
+
+.avaliacoes-pilha {
+    position: relative;
+    height: 300px;
+}
+
+.avaliacao-card {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 18px;
+    background:
+        radial-gradient(120% 80% at 50% 0%, rgba(226, 160, 83, 0.1) 0%, transparent 60%),
+        var(--vidro-fundo-escuro);
+    backdrop-filter: var(--vidro-blur);
+    -webkit-backdrop-filter: var(--vidro-blur);
+    border: 1px solid var(--vidro-borda);
+    border-radius: var(--raio-card);
+    box-shadow: var(--vidro-reflexo), var(--vidro-sombra);
+    transform-origin: bottom center;
+    z-index: var(--camada, 1);
+    rotate: var(--giro, 0deg);
+    scale: 0.95;
+    opacity: 0.7;
+    transition: rotate 0.4s ease-in-out, scale 0.4s ease-in-out, opacity 0.4s ease-in-out;
+}
+
+.avaliacao-card.ativo {
+    z-index: 40;
+    rotate: 0deg;
+    scale: 1;
+    opacity: 1;
+}
+
+/* Os cards de tras mostram so o vidro: o conteudo deles, borrado atras do
+   card da frente, virava um halo em volta da inicial */
+.avaliacao-card > * {
+    transition: opacity 0.4s ease-in-out;
+}
+
+.avaliacao-card:not(.ativo) > * {
+    opacity: 0;
+}
+
+.avaliacao-card.pulando {
+    animation: avaliacao-pulo 0.4s ease-in-out;
+}
+
+.avaliacao-inicial {
+    color: var(--cor-titulo);
+    font-family: var(--fonte-titulo);
+    font-size: 112px;
+    font-weight: 500;
+    line-height: 1;
+    letter-spacing: -0.04em;
+}
+
+.avaliacao-card .estrelas {
+    font-size: 15px;
+}
+
+.avaliacoes-lado {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 32px;
+    min-width: 0;
+    padding: 8px 0;
+}
+
+/* Todos os textos na mesma celula do grid: a altura e sempre a do maior
+   comentario, entao as setas nao mudam de lugar a cada troca */
+.avaliacoes-textos {
+    display: grid;
+}
+
+.avaliacao-texto {
+    grid-area: 1 / 1;
+    margin: 0;
+}
+
+.avaliacao-texto:not(.ativo) {
+    visibility: hidden;
+}
+
+.avaliacao-texto.ativo {
+    animation: avaliacao-texto-entra 0.2s ease-in-out;
+}
+
+.avaliacao-texto figcaption {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+}
+
+.avaliacao-nome {
+    color: var(--cor-titulo);
+    font-family: var(--fonte-titulo);
+    font-size: 24px;
+    font-weight: 600;
+}
+
+.avaliacao-apoio {
+    margin-bottom: 6px;
+    color: var(--cor-texto-3);
+    font-size: 14px;
+}
+
+.avaliacao-comentario-destaque {
+    margin-top: 28px;
+    color: var(--cor-texto-2);
+    font-size: 18px;
+    line-height: 1.6;
+    overflow-wrap: anywhere;
+}
+
+.avaliacao-palavra {
+    display: inline-block;
+    animation: avaliacao-palavra 0.2s ease-in-out backwards;
+    animation-delay: calc(var(--i, 0) * 0.02s);
+}
+
+.avaliacoes-setas {
+    display: flex;
+    gap: 12px;
+}
+
+.avaliacao-seta {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: var(--raio-pilula);
+    background: var(--vidro-fundo);
+    backdrop-filter: var(--vidro-blur);
+    -webkit-backdrop-filter: var(--vidro-blur);
+    border: 1px solid var(--vidro-borda);
+    box-shadow: var(--vidro-reflexo);
+    color: var(--cor-texto-2);
+    font-size: 15px;
+    cursor: pointer;
+    transition: background 0.25s ease, color 0.25s ease, border-color 0.25s ease;
+}
+
+.avaliacao-seta i {
+    transition: transform 0.3s ease;
+}
+
+.avaliacao-seta:hover {
+    background: var(--vidro-fundo-hover);
+    border-color: var(--cor-borda-forte);
+    color: var(--cor-titulo);
+}
+
+.avaliacao-seta[data-avaliacao-anterior]:hover i { transform: rotate(12deg); }
+.avaliacao-seta[data-avaliacao-proxima]:hover i { transform: rotate(-12deg); }
+
+@keyframes avaliacao-pulo {
+    0%, 100% { translate: 0 0; }
+    50%      { translate: 0 -80px; }
+}
+
+@keyframes avaliacao-texto-entra {
+    from { opacity: 0; transform: translateY(20px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes avaliacao-palavra {
+    from { opacity: 0; filter: blur(10px); transform: translateY(5px); }
+    to   { opacity: 1; filter: blur(0); transform: translateY(0); }
+}
+
+
+/* ============================================================
    Agendamentos (listas do cliente e do profissional)
    ============================================================ */
 .grupo-agendamentos {
@@ -1434,6 +1650,167 @@ body.layout-app::after {
 
 
 /* ============================================================
+   Pagina Sobre (sobre.html)
+   Historia ao lado da fachada, galeria "Nosso espaco" com 3 fotos
+   e contatos em dois cards de vidro. As fotos ficam coloridas (o
+   tom quente combina com o ambar), com as bordas escurecidas.
+   ============================================================ */
+.sobre-historia,
+.sobre-cartao {
+    background: var(--vidro-fundo);
+    backdrop-filter: var(--vidro-blur);
+    -webkit-backdrop-filter: var(--vidro-blur);
+    border: 1px solid var(--vidro-borda);
+    border-radius: var(--raio-card);
+    box-shadow: var(--vidro-reflexo), var(--vidro-sombra);
+}
+
+.sobre-historia {
+    display: grid;
+    grid-template-columns: 1.15fr 1fr;
+    gap: 28px;
+    align-items: center;
+    padding: 28px;
+    animation: subir 0.7s var(--ease-saida) 0.08s backwards;
+}
+
+.sobre-historia h2 {
+    margin: 14px 0 10px;
+    color: var(--cor-titulo);
+    font-family: var(--fonte-texto);
+    font-size: clamp(22px, 4vw, 28px);
+    font-weight: 500;
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+}
+
+.sobre-historia p {
+    color: var(--cor-texto-2);
+    font-size: 15px;
+}
+
+.sobre-historia p + p {
+    margin-top: 10px;
+}
+
+.sobre-foto {
+    position: relative;
+    margin: 0;
+    overflow: hidden;
+    border: 1px solid var(--vidro-borda);
+    border-radius: 18px;
+    box-shadow: var(--vidro-sombra);
+    aspect-ratio: 4 / 5;
+}
+
+.sobre-foto img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    /* Os letreiros e logos ficam no alto das fotos: o corte preserva o topo */
+    object-position: 50% 12%;
+    transition: transform 0.6s var(--ease-saida);
+}
+
+/* Bordas escurecidas e um degrade embaixo para a legenda */
+.sobre-foto::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.6) 0%, rgba(0, 0, 0, 0) 38%);
+    box-shadow: inset 0 0 60px rgba(0, 0, 0, 0.55);
+    pointer-events: none;
+}
+
+.sobre-foto:hover img {
+    transform: scale(1.04);
+}
+
+.sobre-foto figcaption {
+    position: absolute;
+    left: 16px;
+    bottom: 14px;
+    z-index: 1;
+    color: var(--cor-titulo);
+    font-size: 14px;
+    font-weight: 500;
+    text-shadow: 0 1px 8px rgba(0, 0, 0, 0.7);
+}
+
+.sobre-secao {
+    margin-top: 48px;
+    animation: subir 0.7s var(--ease-saida) 0.16s backwards;
+}
+
+.sobre-titulo {
+    margin-bottom: 16px;
+    color: var(--cor-titulo);
+    font-family: var(--fonte-titulo);
+    font-size: 22px;
+    font-weight: 500;
+    letter-spacing: -0.01em;
+}
+
+.sobre-secao > .sobre-titulo {
+    text-shadow: 0 2px 18px rgba(0, 0, 0, 0.75), 0 1px 3px rgba(0, 0, 0, 0.5);
+}
+
+.sobre-galeria {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+}
+
+.sobre-contatos {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 14px;
+    margin-top: 48px;
+    animation: subir 0.7s var(--ease-saida) 0.24s backwards;
+}
+
+.sobre-cartao {
+    padding: 24px;
+}
+
+.sobre-lista {
+    display: grid;
+    gap: 14px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.sobre-lista li {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: var(--cor-titulo);
+    font-size: 15px;
+}
+
+.sobre-lista i {
+    display: grid;
+    flex: none;
+    place-items: center;
+    width: 38px;
+    height: 38px;
+    border: 1px solid var(--cor-borda);
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--cor-texto);
+    font-size: 16px;
+}
+
+.sobre-rotulo {
+    display: block;
+    color: var(--cor-texto-3);
+    font-size: 12px;
+}
+
+
+/* ============================================================
    Dialogo de confirmacao (criado pelo menu.js)
    ============================================================ */
 .confirmacao-dialog {
@@ -1768,6 +2145,7 @@ body.com-abertura::after {
 .com-abertura .opcao-menu-inicial:nth-child(2) { animation-delay: 1.16s; }
 .com-abertura .opcao-menu-inicial:nth-child(3) { animation-delay: 1.22s; }
 .com-abertura .opcao-menu-inicial:nth-child(4) { animation-delay: 1.28s; }
+.com-abertura .avaliacoes-destaque { animation-delay: 1.34s; }
 .com-abertura .toast-area { --toast-atraso: 1.45s; }
 
 @keyframes abertura-marca {
@@ -1869,6 +2247,20 @@ body.com-abertura::after {
         transform: none;
     }
 
+    /* Avaliacoes: troca instantanea, sem giro nem pulo */
+    .avaliacao-card {
+        rotate: 0deg;
+    }
+
+    .avaliacao-card.pulando,
+    .avaliacao-texto.ativo {
+        animation: none;
+    }
+
+    .sobre-foto:hover img {
+        transform: none;
+    }
+
     /* A barra do toast marca o tempo de leitura (o toast fecha quando ela acaba):
        mantem os 6s, sem atraso de entrada */
     .toast .toast-progresso {
@@ -1883,6 +2275,22 @@ body.com-abertura::after {
 @media (max-width: 600px) {
     .caixa-login {
         padding: 28px 22px;
+    }
+
+    /* Sobre: tudo em uma coluna; fotos mais baixas para nao virar uma rolagem sem fim */
+    .sobre-historia {
+        grid-template-columns: 1fr;
+        padding: 22px;
+    }
+
+    .sobre-historia-foto,
+    .sobre-galeria .sobre-foto {
+        aspect-ratio: 4 / 3;
+    }
+
+    .sobre-galeria,
+    .sobre-contatos {
+        grid-template-columns: 1fr;
     }
 
     .logo-auth {
@@ -1906,6 +2314,31 @@ body.com-abertura::after {
 
     .opcoes-menu-inicial {
         grid-template-columns: 1fr;
+    }
+
+    /* Avaliacoes: pilha em cima, texto embaixo */
+    .avaliacoes-destaque {
+        margin-top: 56px;
+    }
+
+    .avaliacoes-corpo {
+        grid-template-columns: 1fr;
+        gap: 40px;
+    }
+
+    .avaliacoes-pilha {
+        width: min(100%, 300px);
+        height: 240px;
+        margin: 0 auto;
+    }
+
+    .avaliacao-inicial {
+        font-size: 88px;
+    }
+
+    .avaliacao-comentario-destaque {
+        margin-top: 20px;
+        font-size: 17px;
     }
 
     .opcao-menu-inicial {

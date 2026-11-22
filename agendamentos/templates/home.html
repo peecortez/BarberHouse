@@ -74,14 +74,18 @@
             <span class="opcao-descricao">Promoções e novidades da barbearia.</span>
             <i class="fa-solid fa-arrow-right opcao-seta" aria-hidden="true"></i>
         </a>
-        <a href="{% url 'mais' %}" class="opcao-menu-inicial">
+        <a href="{% url 'sobre' %}" class="opcao-menu-inicial">
             <span class="opcao-topo">
-                <span class="icone-menu-inicial"><i class="fa-solid fa-ellipsis" aria-hidden="true"></i></span>
+                <span class="icone-menu-inicial"><i class="fa-solid fa-store" aria-hidden="true"></i></span>
                 <span class="opcao-indice" aria-hidden="true">{% if tipo == 'cliente' %}04{% else %}03{% endif %}</span>
             </span>
-            <span class="opcao-titulo">Mais</span>
-            <span class="opcao-descricao">Outras opções da sua conta.</span>
+            <span class="opcao-titulo">Sobre</span>
+            <span class="opcao-descricao">Nossa história, espaço e contatos.</span>
             <i class="fa-solid fa-arrow-right opcao-seta" aria-hidden="true"></i>
         </a>
     </div>
+
+    {% if avaliacoes_destaque %}
+        {% include '_avaliacoes_destaque.html' %}
+    {% endif %}
 {% endblock %}

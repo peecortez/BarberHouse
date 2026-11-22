@@ -18,6 +18,8 @@
             {% comment %}
                 Bigode animado (referencias/bigode-animado.svg). Cores no CSS (.svg-tinta);
                 viewBox com folga em cima para a ponta que gira nao ser cortada.
+                A ponta so gira com o mouse (ou o foco) em cima: begin="indefinite",
+                e o menu.js dispara cada volta (ligarBigodeNoHover).
             {% endcomment %}
             <svg class="bigode-nav svg-animado" xmlns="http://www.w3.org/2000/svg" viewBox="0 -4 200 54" aria-hidden="true" focusable="false">
                 <g transform="translate(100 22)" class="svg-tinta">
@@ -27,7 +29,7 @@
                         <animateTransform attributeName="transform" type="rotate"
                             values="0 0 2; 11 0 2; 0 0 2; 0 0 2" keyTimes="0; 0.18; 0.4; 1"
                             calcMode="spline" keySplines="0.4 0 0.2 1; 0.4 0 0.2 1; 0 0 1 1"
-                            dur="2.6s" repeatCount="indefinite"/>
+                            dur="2.6s" begin="indefinite"/>
                     </g>
                     <!-- metade direita: parada -->
                     <path d="M 0 0 C 10 -14 30 -18 50 -8 C 66 0 78 8 92 2 C 84 14 64 22 44 18 C 24 14 10 8 0 4 Z"/>
@@ -50,7 +52,7 @@
                 <a href="{% url 'gerenciar_agenda' %}" class="nav-app-link{% if atual == 'gerenciar_agenda' %} ativo{% endif %}"{% if atual == 'gerenciar_agenda' %} aria-current="page"{% endif %}>Minha agenda</a>
             {% endif %}
             <a href="{% url 'noticias' %}" class="nav-app-link{% if atual == 'noticias' %} ativo{% endif %}"{% if atual == 'noticias' %} aria-current="page"{% endif %}>Notícias</a>
-            <a href="{% url 'mais' %}" class="nav-app-link{% if atual == 'mais' %} ativo{% endif %}"{% if atual == 'mais' %} aria-current="page"{% endif %}>Mais</a>
+            <a href="{% url 'sobre' %}" class="nav-app-link{% if atual == 'sobre' %} ativo{% endif %}"{% if atual == 'sobre' %} aria-current="page"{% endif %}>Sobre</a>
 
             {% if user.is_authenticated %}
                 <form method="post" action="{% url 'logout' %}" class="logout-form">

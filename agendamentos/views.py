@@ -164,7 +164,19 @@ def home(request):
     else:
         tipo = 'cliente'
     abertura_marca = request.session.pop('abertura_marca', False)
-    return render(request, "home.html", {'tipo': tipo, 'abertura_marca': abertura_marca})
+    contexto = {'tipo': tipo, 'abertura_marca': abertura_marca}
+    if tipo == 'cliente':
+        contexto['avaliacoes_destaque'] = _avaliacoes_em_destaque()
+    return render(request, "home.html", contexto)
+
+
+def _avaliacoes_em_destaque(limite=8):
+    """Avaliacoes mais recentes com comentario, para os cards da home do cliente."""
+    return (
+        Avaliacao.objects.exclude(comentario='')
+        .select_related('agendamento__cliente', 'agendamento__profissional', 'agendamento__servico')
+        .order_by('-criado_em')[:limite]
+    )
 
 
 @login_required
@@ -437,13 +449,17 @@ def atualizar_status(request, agendamento_id):
         )
     with transaction.atomic():
         if aplicar_cupom:
-            resgatado = Cliente.objects.filter(
+            # So aplica cupom que o cliente resgatou e ainda nao usou.
+            usado = Cliente.objects.filter(
                 pk=agendamento.cliente_id,
                 cpf__isnull=False,
-                cupom_resgatado_em__isnull=True,
-            ).update(cupom_resgatado_em=timezone.now())
-            if not resgatado:
-                return JsonResponse({'error': 'Cupom j\u00e1 resgatado'}, status=409)
+                cupom_resgatado_em__isnull=False,
+                cupom_usado_em__isnull=True,
+            ).update(cupom_usado_em=timezone.now())
+            if not usado:
+                cliente = Cliente.objects.get(pk=agendamento.cliente_id)
+                erro = 'Cupom j\u00e1 usado' if cliente.cupom_usado else 'O cliente ainda n\u00e3o resgatou o cupom'
+                return JsonResponse({'error': erro}, status=409)
             agendamento.cupom_aplicado = True
         agendamento.save()
 
@@ -498,9 +514,28 @@ def noticias(request):
     return render(request, 'noticias.html', {'cliente': cliente})
 
 
-def mais(request):
-    """Placeholder view for more options page"""
-    return render(request, 'mais.html')
+@login_required
+@require_POST
+def resgatar_cupom(request):
+    """O cliente pega o cupom em Noticias. Sem isso, o profissional nao pode aplica-lo."""
+    cliente = getattr(request.user, 'cliente', None)
+    if cliente is None:
+        return JsonResponse({'error': 'A promoção é exclusiva para contas de cliente.'}, status=403)
+    if not cliente.cpf:
+        return JsonResponse({'error': 'Sua conta ainda não tem CPF cadastrado.'}, status=400)
+
+    # Idempotente: um segundo clique nao muda a data do primeiro.
+    Cliente.objects.filter(pk=cliente.pk, cupom_resgatado_em__isnull=True).update(
+        cupom_resgatado_em=timezone.now()
+    )
+    if request.headers.get('X-Requested-With') == 'fetch':
+        return JsonResponse({'codigo': cliente.codigo_promocao})
+    return redirect('noticias')
+
+
+def sobre(request):
+    """Historia, espaco (fotos) e contatos da barbearia. Conteudo fixo, aberto a todos."""
+    return render(request, 'sobre.html')
 
 class LogoutLimpandoMensagens(LogoutView):
     """Descarta mensagens pendentes para que n\u00e3o apare\u00e7am na tela de login."""

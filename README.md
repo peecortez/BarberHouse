@@ -10,6 +10,7 @@ Sistema web para gerenciamento de uma barbearia, desenvolvido com Django. Client
 - E-mails de agendamento para o cliente: horário reservado, confirmado pelo profissional, cancelado (com texto diferente se quem cancelou foi o profissional) e concluído (com o convite para avaliar).
 - Lembrete por e-mail 24h antes do horário, para quem marcou com mais de um dia de antecedência. Cada agendamento recebe no máximo um.
 - Avaliação do atendimento: depois de concluído, o cliente dá de 1 a 5 estrelas e um comentário opcional (uma vez por atendimento). O profissional vê a média e os comentários em "Minha agenda", e o cliente vê a média de cada profissional na hora de agendar.
+- Avaliações na Home do cliente: abaixo do menu, a seção "O que dizem nossos clientes" mostra as 8 avaliações mais recentes que têm comentário, numa pilha de cards de vidro com a inicial do cliente (o ativo fica na frente e os outros atrás, girados). O comentário aparece palavra por palavra, e as setas ← → trocam a avaliação. Só aparece o primeiro nome de quem avaliou, e a tela de avaliar avisa que o comentário pode aparecer ali. Sem avaliações com comentário, a seção não aparece.
 - Cadastro de serviços pelo painel administrativo do Django.
 - Consulta de horários disponíveis por serviço, profissional e data.
 - Criação e acompanhamento de agendamentos.
@@ -18,7 +19,8 @@ Sistema web para gerenciamento de uma barbearia, desenvolvido com Django. Client
 - Identificação de quem cancelou cada agendamento.
 - Confirmação, conclusão e cancelamento de atendimentos, conforme o perfil do usuário.
 - Abertura e fechamento da agenda do profissional.
-- Notícia de promoção com código de 15% de desconto (`BARBER15OFF` + 3 últimos dígitos do CPF), um por CPF, exibido ao cliente logado. O profissional valida o uso ao concluir o atendimento; depois disso o cliente vê "Cupom já resgatado".
+- Notícia de promoção com código de 15% de desconto (`BARBER15OFF` + 3 últimos dígitos do CPF), um por CPF, exibido ao cliente logado. O cliente resgata o cupom em Notícias ("Pegue seu cupom aqui"), e o resgate fica gravado. Só então o profissional pode aplicá-lo ao concluir o atendimento: sem resgate, a opção nem aparece e o servidor recusa. Depois de usado, o cliente vê "Cupom já usado".
+- Página Sobre (`/sobre/`, aberta a todos): a história (fictícia) da barbearia desde 2015 ao lado da foto da fachada, a galeria "Nosso espaço" com 3 fotos do salão e os contatos (WhatsApp, Instagram, TikTok, endereço e horário). Os contatos são fictícios e aparecem só como texto, sem link.
 - Barra de navegação fixa em todas as telas internas, adaptada para celular. Ela fica transparente no topo e ganha fundo com desfoque ao rolar a página.
 - Menu inicial com saudação pelo primeiro nome do usuário.
 - Abertura da marca logo após o login: o logo aparece sobre fundo preto (o bigode se abre do centro para os lados) e a foto se abre do centro para as bordas.
@@ -137,6 +139,8 @@ O comando apaga clientes, profissionais, agendamentos, avaliações, sessões e 
 | Diego Martins | diego@barberhouse.com    |
 | Thiago Alves  | thiago@barberhouse.com   |
 
+Se houver pelo menos um serviço cadastrado, o comando também cria 5 clientes de demonstração (Lucas, Gabriel, Matheus, Pedro e João, com e-mails `@cliente.demo`, por exemplo `lucas@cliente.demo`, e a mesma senha `barber123`), cada um com um atendimento concluído e uma avaliação. É isso que preenche a seção de avaliações da Home. Nenhum e-mail é enviado.
+
 Os superusuários (admin) e os serviços continuam.
 
 ## Fluxo de uso
@@ -174,6 +178,8 @@ As telas herdam de um layout comum em `agendamentos/templates/`:
 - `base_app.html`: telas internas, com a barra de navegação fixa (links conforme o perfil, link ativo destacado e botão Sair).
 - `recuperar_senha.html`, `recuperar_senha_enviado.html`, `redefinir_senha.html` e `redefinir_senha_concluido.html`: o fluxo de "Esqueceu a senha?", sobre `base_auth.html`.
 - `avaliar.html`: a nota em estrelas e o comentário do atendimento. `_estrelas.html` mostra uma nota já dada.
+- `_avaliacoes_destaque.html`: a seção de avaliações da Home do cliente. Todos os cards vêm prontos no HTML, e o `menu.js` (`ligarAvaliacoesDestaque`) só troca o ativo e anima.
+- `sobre.html`: a página Sobre (história, "Nosso espaço" e contatos), com conteúdo fixo. As fotos ficam em `agendamentos/static/agendamentos/sobre/`, recortadas e comprimidas (até ~200 KB cada); os originais ficam em `referencias/sobre/`, fora do Git.
 - `_logo.html`: o logo do login, do cadastro e da abertura, incluído com `{% include '_logo.html' with tamanho='auth' %}`. Os tamanhos são `auth` e `abertura`. Com `slogan=True`, mostra também "barbearia & estilo".
 
 O tipo do usuário logado (`cliente` ou `profissional`) e o primeiro nome dele chegam a todos os templates como `tipo_usuario` e `primeiro_nome`, pelo context processor `agendamentos/context_processors.py`. O JavaScript das telas fica em `agendamentos/static/agendamentos/menu.js`, e os estilos em `barbearia.css`.
@@ -184,7 +190,7 @@ O logo oficial (bigode, "barberhouse" e o slogan "barbearia & estilo") foi adapt
 
 - **Home:** o logo completo animado (`referencias/logo-barberhouse-animada.svg`) fica colado direto no `home.html`, acima da saudação.
 - **Barra de navegação:** só o bigode animado (`referencias/bigode-animado.svg`), colado direto no `base_app.html`. Ele leva para o Início e fica âmbar no hover.
-- **Animação dos SVGs:** a metade esquerda do bigode gira de leve a cada 2,6s, com animação SMIL nativa do SVG. Para quem ativa "reduzir movimento", o `menu.js` congela o bigode parado.
+- **Animação dos SVGs:** a metade esquerda do bigode gira de leve a cada 2,6s, com animação SMIL nativa do SVG. No logo da Home o giro é contínuo; na barra, só acontece com o mouse (ou o foco do teclado) em cima. Para quem ativa "reduzir movimento", o `menu.js` congela o bigode parado.
 - **Cores:** os SVGs originais são escuros sobre creme. Aqui as cores vêm do CSS (`.svg-tinta`, `.svg-destaque` e `.svg-slogan`): o bigode e "barber" ficam claros, e "house" usa o âmbar da interface no lugar do ferrugem original (`#b9512a`).
 - **Fonte:** o nome usa Inter 800 e o slogan Inter 400, carregadas pelo Google Fonts, como no design oficial.
 - **Login, cadastro e abertura:** usam `_logo.html`. O bigode é uma máscara (`logo-bigode.png`) e o nome é texto em Inter.
@@ -197,6 +203,8 @@ Todas as telas usam glassmorphism: uma foto em preto e branco fica ao fundo com 
 - `fundo-home` (poste de barbeiro, `fundo-home.jpg`): menu inicial.
 - `fundo-agendamentos` (cadeira, `fundo-agendamentos.jpg`): Agendar e Meus agendamentos.
 - Sem classe: a foto padrão (`fundo-barbearia.jpg`), usada também no login e no cadastro.
+
+As fotos da página Sobre são a exceção ao preto e branco: ficam coloridas (o tom quente combina com o âmbar), com as bordas escurecidas e o corte preservando o alto da foto, onde estão os letreiros.
 
 As cores, os raios, as fontes e a intensidade do vidro ficam em variáveis no topo de `barbearia.css` (`--cor-*`, `--raio-*`, `--fonte-*` e `--vidro-*`). Quem ativa "reduzir movimento" no sistema vê as telas sem animação e sem transição entre páginas.
 

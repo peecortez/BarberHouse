@@ -1,0 +1,45 @@
+{% comment %}
+    Avaliacoes na home do cliente (referencia: Animated Testimonials, Aceternity UI).
+    Esquerda: pilha de cards de vidro com a inicial do cliente. Direita: nome, servico e comentario.
+    Tudo vem renderizado; o menu.js so troca o card ativo e anima (ligarAvaliacoesDestaque).
+{% endcomment %}
+<section class="avaliacoes-destaque" data-avaliacoes aria-labelledby="tituloAvaliacoes">
+    <h2 id="tituloAvaliacoes" class="avaliacoes-titulo">O que dizem nossos clientes</h2>
+
+    <div class="avaliacoes-corpo">
+        <div class="avaliacoes-pilha" aria-hidden="true">
+            {% for avaliacao in avaliacoes_destaque %}
+                <div class="avaliacao-card{% if forloop.first %} ativo{% endif %}">
+                    <span class="avaliacao-inicial">{{ avaliacao.agendamento.cliente.primeiro_nome|first|upper|default:"?" }}</span>
+                    {% include '_estrelas.html' with nota=avaliacao.nota %}
+                </div>
+            {% endfor %}
+        </div>
+
+        <div class="avaliacoes-lado">
+            <div class="avaliacoes-textos" aria-live="polite">
+                {% for avaliacao in avaliacoes_destaque %}
+                    <figure class="avaliacao-texto{% if forloop.first %} ativo{% endif %}"{% if not forloop.first %} aria-hidden="true"{% endif %}>
+                        <figcaption>
+                            <span class="avaliacao-nome">{{ avaliacao.agendamento.cliente.primeiro_nome|default:"Cliente" }}</span>
+                            <span class="avaliacao-apoio">{{ avaliacao.agendamento.servico.nome }} com {{ avaliacao.agendamento.profissional.nome }}</span>
+                            {% include '_estrelas.html' with nota=avaliacao.nota %}
+                        </figcaption>
+                        <blockquote class="avaliacao-comentario-destaque">{{ avaliacao.comentario }}</blockquote>
+                    </figure>
+                {% endfor %}
+            </div>
+
+            {% if avaliacoes_destaque|length > 1 %}
+                <div class="avaliacoes-setas">
+                    <button type="button" class="avaliacao-seta" data-avaliacao-anterior aria-label="Avaliação anterior">
+                        <i class="fa-solid fa-arrow-left" aria-hidden="true"></i>
+                    </button>
+                    <button type="button" class="avaliacao-seta" data-avaliacao-proxima aria-label="Próxima avaliação">
+                        <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+                    </button>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</section>
