@@ -1,0 +1,67 @@
+{% extends 'base_app.html' %}
+{% load static %}
+
+{% block titulo %}Sobre - BarberHouse{% endblock %}
+{% block titulo_pagina %}Sobre{% endblock %}
+{% block subtitulo_pagina %}Desde 2015, cuidando do seu estilo{% endblock %}
+
+{% comment %}
+    Pagina institucional, com conteudo fixo e ficticio (trabalho de faculdade).
+    Os contatos ficam so em texto, sem link: contas reais com esses nomes podem existir.
+    Fotos em static/agendamentos/sobre/ (originais em referencias/sobre/, fora do Git).
+{% endcomment %}
+
+{% block conteudo %}
+    <section class="sobre-historia" aria-labelledby="tituloHistoria">
+        <div class="sobre-historia-texto">
+            <span class="noticia-selo">Barbearia &amp; estilo</span>
+            <h2 id="tituloHistoria">Nossa história</h2>
+            <p>A BarberHouse começou em 2015, numa sala pequena com uma cadeira só, um espelho e a vontade de fazer um corte bem feito. O primeiro cliente veio por indicação de um amigo; o segundo, por indicação do primeiro.</p>
+            <p>A agenda lotou, a equipe cresceu e a casa mudou para o endereço atual: tijolo à vista, cadeiras clássicas, luz baixa e o bigode em neon que virou a nossa marca.</p>
+            <p>O jeito de trabalhar continua o mesmo: <span class="destaque">horário respeitado</span>, conversa boa e café passado na hora. Aqui ninguém sai com pressa, nem com um corte que não combina com você.</p>
+        </div>
+        <figure class="sobre-foto sobre-historia-foto">
+            <img src="{% static 'agendamentos/sobre/fachada.jpg' %}" width="593" height="620"
+                 alt="Fachada da BarberHouse à noite, com o letreiro iluminado, toldo listrado em preto e branco e poste de barbeiro">
+        </figure>
+    </section>
+
+    <section class="sobre-secao" aria-labelledby="tituloEspaco">
+        <h2 class="sobre-titulo" id="tituloEspaco">Nosso espaço</h2>
+        <div class="sobre-galeria">
+            <figure class="sobre-foto">
+                <img src="{% static 'agendamentos/sobre/cadeira-logo.jpg' %}" width="800" height="1200" loading="lazy"
+                     alt="Cadeira de barbeiro de couro preto diante da parede de tijolo com o logo da BarberHouse e um poste de barbeiro">
+                <figcaption>O salão</figcaption>
+            </figure>
+            <figure class="sobre-foto">
+                <img src="{% static 'agendamentos/sobre/cadeira-classica.jpg' %}" width="591" height="676" loading="lazy"
+                     alt="Cadeira de barbeiro clássica, de couro marrom e metal, diante de um espelho iluminado e de pôsteres da BarberHouse">
+                <figcaption>A cadeira clássica</figcaption>
+            </figure>
+            <figure class="sobre-foto">
+                <img src="{% static 'agendamentos/sobre/recepcao.jpg' %}" width="591" height="620" loading="lazy"
+                     alt="Recepção com sofá de couro e mesa de centro, um bigode em neon na parede e o balcão com o logo da BarberHouse">
+                <figcaption>A recepção</figcaption>
+            </figure>
+        </div>
+    </section>
+
+    <section class="sobre-contatos" aria-label="Contatos e endereço">
+        <div class="sobre-cartao">
+            <h2 class="sobre-titulo">Fale com a gente</h2>
+            <ul class="sobre-lista">
+                <li><i class="fa-brands fa-whatsapp" aria-hidden="true"></i><span><span class="sobre-rotulo">WhatsApp</span>(11) 90000-0000</span></li>
+                <li><i class="fa-brands fa-instagram" aria-hidden="true"></i><span><span class="sobre-rotulo">Instagram</span>@barberhouse.oficial</span></li>
+                <li><i class="fa-brands fa-tiktok" aria-hidden="true"></i><span><span class="sobre-rotulo">TikTok</span>@barberhouse</span></li>
+            </ul>
+        </div>
+        <div class="sobre-cartao">
+            <h2 class="sobre-titulo">Onde estamos</h2>
+            <ul class="sobre-lista">
+                <li><i class="fa-solid fa-location-dot" aria-hidden="true"></i><span><span class="sobre-rotulo">Endereço</span>Rua dos Barbeiros, 215 · Vila Navalha, São Paulo</span></li>
+                <li><i class="fa-regular fa-clock" aria-hidden="true"></i><span><span class="sobre-rotulo">Horário</span>Seg–Sáb, 8h às 18h</span></li>
+            </ul>
+        </div>
+    </section>
+{% endblock %}

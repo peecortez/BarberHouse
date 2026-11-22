@@ -10,18 +10,27 @@
         <h2><span class="destaque">15%</span> de desconto na sua conta</h2>
         <p>Apresente o seu código na hora do pagamento e ganhe 15% de desconto. Cada CPF tem direito a um único código.</p>
 
-        {% if cliente and cliente.cupom_resgatado %}
+        {% if cliente and cliente.cupom_usado %}
             <button type="button" class="botao-principal botao-cupom" disabled>
-                <i class="fa-solid fa-circle-check" aria-hidden="true"></i> Cupom já resgatado
+                <i class="fa-solid fa-circle-check" aria-hidden="true"></i> Cupom já usado
             </button>
         {% elif cliente and cliente.codigo_promocao %}
-            <button type="button" class="botao-principal botao-cupom" id="botaoCupom" aria-expanded="false" aria-controls="areaCupom">
-                <i class="fa-solid fa-ticket" aria-hidden="true"></i> Pegue seu cupom aqui
-            </button>
+            {% comment %}
+                O codigo so entra no HTML depois do resgate. Antes, o form grava o
+                resgate (o menu.js faz isso por fetch e preenche #codigoCupom).
+            {% endcomment %}
+            {% if not cliente.cupom_resgatado %}
+                <form method="post" action="{% url 'resgatar_cupom' %}" id="formCupom">
+                    {% csrf_token %}
+                    <button type="submit" class="botao-principal botao-cupom" id="botaoCupom" aria-expanded="false" aria-controls="areaCupom">
+                        <i class="fa-solid fa-ticket" aria-hidden="true"></i> Pegue seu cupom aqui
+                    </button>
+                </form>
+            {% endif %}
 
-            <div id="areaCupom" class="area-cupom escondida" role="status" aria-live="polite">
+            <div id="areaCupom" class="area-cupom{% if not cliente.cupom_resgatado %} escondida{% endif %}" role="status" aria-live="polite">
                 <p class="noticia-rotulo">Seu código</p>
-                <div class="noticia-codigo" id="codigoCupom">{{ cliente.codigo_promocao }}</div>
+                <div class="noticia-codigo" id="codigoCupom">{% if cliente.cupom_resgatado %}{{ cliente.codigo_promocao }}{% endif %}</div>
                 <button type="button" class="botao-copiar" id="botaoCopiar">
                     <i class="fa-regular fa-copy" aria-hidden="true"></i> <span>Copiar código</span>
                 </button>

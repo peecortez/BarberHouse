@@ -99,6 +99,36 @@ function ajustarSvgsAnimados() {
 document.addEventListener('DOMContentLoaded', ajustarSvgsAnimados);
 reduzirMovimento.addEventListener('change', ajustarSvgsAnimados);
 
+// Bigode da barra: a ponta so gira com o mouse (ou o foco) em cima.
+// Cada volta vai ate o fim; se o mouse continua em cima, comeca outra.
+function ligarBigodeNoHover() {
+    const marca = document.querySelector('.nav-app-marca');
+    const giro = marca && marca.querySelector('animateTransform');
+    if (!giro || typeof giro.beginElement !== 'function') return;
+
+    let emCima = false;
+    let girando = false;
+    const girar = () => {
+        if (!emCima || girando || reduzirMovimento.matches) return;
+        girando = true;
+        giro.beginElement();
+    };
+
+    giro.addEventListener('endEvent', () => {
+        girando = false;
+        girar();
+    });
+    ['mouseenter', 'focus'].forEach(evento => marca.addEventListener(evento, () => {
+        emCima = true;
+        girar();
+    }));
+    ['mouseleave', 'blur'].forEach(evento => marca.addEventListener(evento, () => {
+        emCima = false;
+    }));
+}
+
+document.addEventListener('DOMContentLoaded', ligarBigodeNoHover);
+
 // Transicao entre paginas (View Transitions, ver barbearia.css).
 // Quando a pagina chega por transicao, marca o <html> para o cabecalho
 // nao repetir a animacao de entrada (ele ja vem do morph).
@@ -132,6 +162,84 @@ document.addEventListener('click', function (event) {
 window.addEventListener('pageshow', function (event) {
     if (event.persisted) limparTransicaoCards();
 });
+
+// Home do cliente: avaliacoes em pilha (_avaliacoes_destaque.html, estilos em
+// barbearia.css). O HTML ja vem com o primeiro card ativo; aqui so se troca o
+// ativo, se sorteia o giro dos cards de tras e se anima o comentario.
+function ligarAvaliacoesDestaque() {
+    const secao = document.querySelector('[data-avaliacoes]');
+    if (!secao) return;
+    const cards = Array.from(secao.querySelectorAll('.avaliacao-card'));
+    const textos = Array.from(secao.querySelectorAll('.avaliacao-texto'));
+    const total = cards.length;
+    if (!total) return;
+    let ativo = 0;
+
+    // Giro de -10 a 10 graus, como na referencia
+    function giroAleatorio() {
+        return Math.floor(Math.random() * 21) - 10;
+    }
+
+    // Quebra o comentario em palavras. textContent: o comentario nunca vira HTML
+    function animarPalavras(texto) {
+        const bloco = texto.querySelector('.avaliacao-comentario-destaque');
+        if (!bloco) return;
+        const original = bloco.dataset.original || bloco.textContent.trim();
+        bloco.dataset.original = original;
+        if (reduzirMovimento.matches) {
+            bloco.textContent = original;
+            return;
+        }
+        bloco.textContent = '';
+        original.split(/\s+/).forEach((palavra, i) => {
+            if (i) bloco.append(' ');
+            const span = document.createElement('span');
+            span.className = 'avaliacao-palavra';
+            span.style.setProperty('--i', i);
+            span.textContent = palavra;
+            bloco.append(span);
+        });
+    }
+
+    function mostrar(indice, animar) {
+        ativo = (indice + total) % total;
+        cards.forEach((card, i) => {
+            const eAtivo = i === ativo;
+            card.classList.toggle('ativo', eAtivo);
+            card.style.setProperty('--camada', eAtivo ? 40 : total + 2 - i);
+            card.style.setProperty('--giro', (reduzirMovimento.matches ? 0 : giroAleatorio()) + 'deg');
+            card.classList.remove('pulando');
+        });
+        if (animar) {
+            void cards[ativo].offsetWidth;  // reinicia a animacao do pulo
+            cards[ativo].classList.add('pulando');
+        }
+        textos.forEach((texto, i) => {
+            const eAtivo = i === ativo;
+            texto.classList.toggle('ativo', eAtivo);
+            // Os inativos ficam invisiveis mas ocupam lugar (barbearia.css)
+            if (eAtivo) texto.removeAttribute('aria-hidden');
+            else texto.setAttribute('aria-hidden', 'true');
+        });
+        animarPalavras(textos[ativo]);
+    }
+
+    const anterior = secao.querySelector('[data-avaliacao-anterior]');
+    const proxima = secao.querySelector('[data-avaliacao-proxima]');
+    if (anterior) anterior.addEventListener('click', () => mostrar(ativo - 1, true));
+    if (proxima) proxima.addEventListener('click', () => mostrar(ativo + 1, true));
+
+    // Setas do teclado quando o foco esta num dos botoes
+    secao.addEventListener('keydown', function (event) {
+        if (!event.target.closest('.avaliacao-seta')) return;
+        if (event.key === 'ArrowLeft') { event.preventDefault(); mostrar(ativo - 1, true); }
+        if (event.key === 'ArrowRight') { event.preventDefault(); mostrar(ativo + 1, true); }
+    });
+
+    mostrar(0, false);
+}
+
+document.addEventListener('DOMContentLoaded', ligarAvaliacoesDestaque);
 
 document.addEventListener('DOMContentLoaded', function () {
 
@@ -254,19 +362,36 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // Noticias: revelar e copiar o cupom
-    const botaoCupom = document.getElementById('botaoCupom');
-    if (botaoCupom) {
+    // Noticias: resgatar (grava no servidor), revelar e copiar o cupom
+    const botaoCopiar = document.getElementById('botaoCopiar');
+    const formCupom = document.getElementById('formCupom');
+    if (formCupom) {
+        const botaoCupom = document.getElementById('botaoCupom');
         const areaCupom = document.getElementById('areaCupom');
-        const botaoCopiar = document.getElementById('botaoCopiar');
 
-        botaoCupom.addEventListener('click', () => {
-            areaCupom.classList.remove('escondida');
-            areaCupom.classList.add('cupom-revelado');
-            botaoCupom.classList.add('escondida');
-            botaoCupom.setAttribute('aria-expanded', 'true');
+        formCupom.addEventListener('submit', async (evento) => {
+            evento.preventDefault();
+            botaoCupom.disabled = true;
+            try {
+                const resposta = await fetch(formCupom.action, {
+                    method: 'POST',
+                    headers: { 'X-CSRFToken': getCookie('csrftoken'), 'X-Requested-With': 'fetch' },
+                });
+                const dados = await resposta.json().catch(() => ({}));
+                if (!resposta.ok || !dados.codigo) throw new Error(dados.error || '');
+                document.getElementById('codigoCupom').textContent = dados.codigo;
+                areaCupom.classList.remove('escondida');
+                areaCupom.classList.add('cupom-revelado');
+                formCupom.classList.add('escondida');
+                botaoCupom.setAttribute('aria-expanded', 'true');
+            } catch (erro) {
+                showMessage(erro.message || 'Não foi possível pegar o cupom. Tente de novo.', 'error');
+                botaoCupom.disabled = false;
+            }
         });
+    }
 
+    if (botaoCopiar) {
         botaoCopiar.addEventListener('click', async () => {
             const rotulo = botaoCopiar.querySelector('span');
             try {

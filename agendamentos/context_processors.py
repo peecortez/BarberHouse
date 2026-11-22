@@ -1,3 +1,6 @@
+from .models import primeiro_nome
+
+
 def tipo_usuario(request):
     """Disponibiliza em todos os templates:
 
@@ -14,5 +17,4 @@ def tipo_usuario(request):
     elif hasattr(usuario, "cliente"):
         perfil, tipo = usuario.cliente, "cliente"
 
-    nome = (getattr(perfil, "nome", "") or "").strip()
-    return {"tipo_usuario": tipo, "primeiro_nome": nome.split()[0] if nome else ""}
+    return {"tipo_usuario": tipo, "primeiro_nome": primeiro_nome(getattr(perfil, "nome", ""))}

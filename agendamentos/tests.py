@@ -61,7 +61,7 @@ class FluxoAgendamentoTest(TestCase):
         # A navegacao agora e feita por links nos templates (home + barra fixa)
         self.logar("cli@x.com")
         html = self.client.get("/").content.decode()
-        for rota in ("/agenda-cliente/", "/meus-agendamentos/", "/noticias/", "/mais/"):
+        for rota in ("/agenda-cliente/", "/meus-agendamentos/", "/noticias/", "/sobre/"):
             self.assertIn(f'href="{rota}"', html)
         js = JS.read_text(encoding="utf-8")
         self.assertNotIn("${horario}:00", js)
@@ -148,7 +148,7 @@ class LogoutEVoltarTest(BaseComPerfis):
         # A barra fixa (base_app.html) leva de volta ao inicio e tem o botao Sair
         voltar = f'href="{reverse("home")}"'
         self.logar("cli@x.com")
-        for nome in ("agenda_cliente", "meus_agendamentos", "noticias", "mais"):
+        for nome in ("agenda_cliente", "meus_agendamentos", "noticias", "sobre"):
             html = self.client.get(reverse(nome)).content.decode()
             self.assertIn(voltar, html, nome)
             self.assertIn(f'action="{reverse("logout")}"', html, nome)
@@ -263,7 +263,8 @@ class CadastroCpfTests(TestCase):
 class PromocaoNoticiasTests(TestCase):
     def test_cliente_ve_codigo_com_ultimos_3_digitos_do_cpf(self):
         u = User.objects.create_user("c@x.com", "c@x.com", "senha123")
-        Cliente.objects.create(usuario=u, nome="C", email="c@x.com", telefone="1", cpf="52998224725")
+        Cliente.objects.create(usuario=u, nome="C", email="c@x.com", telefone="1", cpf="52998224725",
+                               cupom_resgatado_em=timezone.now())
         self.client.login(username="c@x.com", password="senha123")
         resp = self.client.get(reverse("noticias"))
         self.assertContains(resp, "BARBER15OFF725")
@@ -297,31 +298,87 @@ class ResgateCupomTests(TestCase):
             content_type="application/json",
         )
 
-    def test_concluir_com_cupom_resgata_e_bloqueia_reuso(self):
+    def resgatar(self, usuario="c@x.com", ajax=True):
+        self.client.login(username=usuario, password="senha123")
+        extra = {"HTTP_X_REQUESTED_WITH": "fetch"} if ajax else {}
+        return self.client.post(reverse("resgatar_cupom"), **extra)
+
+    def test_resgatar_grava_e_devolve_codigo(self):
+        resp = self.resgatar()
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(resp.json()["codigo"], "BARBER15OFF725")
+        self.cliente.refresh_from_db()
+        self.assertTrue(self.cliente.cupom_resgatado)
+        self.assertFalse(self.cliente.cupom_usado)
+
+    def test_resgatar_sem_js_volta_para_noticias(self):
+        resp = self.resgatar(ajax=False)
+        self.assertRedirects(resp, reverse("noticias"))
+        self.cliente.refresh_from_db()
+        self.assertTrue(self.cliente.cupom_resgatado)
+
+    def test_resgatar_duas_vezes_mantem_a_primeira_data(self):
+        self.resgatar()
+        self.cliente.refresh_from_db()
+        primeira = self.cliente.cupom_resgatado_em
+        self.resgatar()
+        self.cliente.refresh_from_db()
+        self.assertEqual(self.cliente.cupom_resgatado_em, primeira)
+
+    def test_profissional_e_anonimo_nao_resgatam(self):
+        self.assertEqual(self.resgatar(usuario="p@x.com").status_code, 403)
+        self.client.logout()
+        resp = self.client.post(reverse("resgatar_cupom"))
+        self.assertEqual(resp.status_code, 302)
+        self.assertIn(reverse("login"), resp["Location"])
+        self.cliente.refresh_from_db()
+        self.assertFalse(self.cliente.cupom_resgatado)
+
+    def test_cliente_sem_cpf_nao_resgata(self):
+        Cliente.objects.filter(pk=self.cliente.pk).update(cpf=None)
+        self.assertEqual(self.resgatar().status_code, 400)
+        self.cliente.refresh_from_db()
+        self.assertFalse(self.cliente.cupom_resgatado)
+
+    def test_aplicar_sem_resgate_e_recusado(self):
+        ag = self.agendamento()
+        resp = self.concluir(ag, cupom=True)
+        self.assertEqual(resp.status_code, 409)
+        self.assertEqual(resp.json()["error"], "O cliente ainda não resgatou o cupom")
+        ag.refresh_from_db()
+        self.cliente.refresh_from_db()
+        self.assertEqual(ag.status, Agendamento.Status.AGENDADO)
+        self.assertFalse(ag.cupom_aplicado)
+        self.assertFalse(self.cliente.cupom_usado)
+
+    def test_concluir_com_cupom_usa_e_bloqueia_reuso(self):
+        self.resgatar()
         ag = self.agendamento()
         self.assertEqual(self.concluir(ag, cupom=True).status_code, 200)
         self.cliente.refresh_from_db()
         ag.refresh_from_db()
-        self.assertTrue(self.cliente.cupom_resgatado)
+        self.assertTrue(self.cliente.cupom_usado)
         self.assertTrue(ag.cupom_aplicado)
         self.assertEqual(ag.status, Agendamento.Status.CONCLUIDO)
 
         ag2 = self.agendamento()
         resp = self.concluir(ag2, cupom=True)
         self.assertEqual(resp.status_code, 409)
+        self.assertEqual(resp.json()["error"], "Cupom já usado")
         ag2.refresh_from_db()
         self.assertEqual(ag2.status, Agendamento.Status.AGENDADO)
         self.assertFalse(ag2.cupom_aplicado)
 
-    def test_concluir_sem_cupom_nao_resgata(self):
+    def test_concluir_sem_cupom_nao_usa(self):
+        self.resgatar()
         ag = self.agendamento()
         self.assertEqual(self.concluir(ag).status_code, 200)
         self.cliente.refresh_from_db()
-        self.assertFalse(self.cliente.cupom_resgatado)
+        self.assertFalse(self.cliente.cupom_usado)
 
-    def test_cliente_nao_pode_resgatar_o_proprio_cupom(self):
+    def test_cliente_nao_pode_aplicar_o_proprio_cupom(self):
+        self.resgatar()
         ag = self.agendamento()
-        self.client.login(username="c@x.com", password="senha123")
         resp = self.client.post(
             reverse("atualizar_status", args=[ag.id]),
             data=json.dumps({"acao": "concluir", "cupom": True}),
@@ -329,14 +386,32 @@ class ResgateCupomTests(TestCase):
         )
         self.assertEqual(resp.status_code, 403)
         self.cliente.refresh_from_db()
-        self.assertFalse(self.cliente.cupom_resgatado)
+        self.assertFalse(self.cliente.cupom_usado)
 
-    def test_noticias_mostra_cupom_ja_resgatado(self):
-        self.cliente.cupom_resgatado_em = timezone.now()
-        self.cliente.save()
+    def test_checkbox_do_profissional_so_aparece_com_resgate(self):
+        self.agendamento()
+        self.client.login(username="p@x.com", password="senha123")
+        self.assertNotContains(self.client.get(reverse("gerenciar_agenda")), "data-cupom-disponivel")
+        self.resgatar()
+        self.client.login(username="p@x.com", password="senha123")
+        self.assertContains(self.client.get(reverse("gerenciar_agenda")), "data-cupom-disponivel")
+
+    def test_noticias_antes_e_depois_do_resgate(self):
+        self.client.login(username="c@x.com", password="senha123")
+        antes = self.client.get(reverse("noticias"))
+        self.assertContains(antes, "Pegue seu cupom aqui")
+        self.assertNotContains(antes, "BARBER15OFF725")
+        self.resgatar()
+        depois = self.client.get(reverse("noticias"))
+        self.assertContains(depois, "BARBER15OFF725")
+        self.assertNotContains(depois, "Pegue seu cupom aqui")
+
+    def test_noticias_mostra_cupom_ja_usado(self):
+        agora = timezone.now()
+        Cliente.objects.filter(pk=self.cliente.pk).update(cupom_resgatado_em=agora, cupom_usado_em=agora)
         self.client.login(username="c@x.com", password="senha123")
         resp = self.client.get(reverse("noticias"))
-        self.assertContains(resp, "Cupom já resgatado")
+        self.assertContains(resp, "Cupom já usado")
         self.assertNotContains(resp, "BARBER15OFF725")
 
 
@@ -364,7 +439,7 @@ class MensagensTests(TestCase):
 
     def test_mensagem_nao_fica_pendente_ao_navegar_entre_paginas(self):
         self.client.post(reverse("login"), {"email": "m@x.com", "senha": "senha123"})
-        for nome in ("home", "noticias", "mais"):
+        for nome in ("home", "noticias", "sobre"):
             resp = self.client.get(reverse(nome))
             self.assertEqual(resp.status_code, 200)
         resp = self.client.post(reverse("logout"), follow=True)
@@ -748,3 +823,150 @@ class AvaliacaoTests(BaseComPerfis):
     def test_login_ignora_next_para_outro_site(self):
         resp = self.client.post(f'{reverse("login")}?next=https://malicioso.com/', {"email": "cli@x.com", "senha": "senha123"})
         self.assertRedirects(resp, reverse("home"))
+
+    def test_tela_de_avaliar_avisa_que_comentario_aparece_na_home(self):
+        self.logar("cli@x.com")
+        self.assertContains(
+            self.client.get(self.url),
+            "Seu comentário e seu primeiro nome podem aparecer na página inicial para outros clientes.",
+        )
+
+
+class AvaliacoesNaHomeTests(BaseComPerfis):
+    TITULO = "O que dizem nossos clientes"
+
+    def avaliar(self, comentario, nota=5, nome_cliente="Lucas Pereira"):
+        n = Cliente.objects.count()
+        email = f"avaliador{n}@x.com"
+        u = User.objects.create_user(email, email, "senha123")
+        cliente = Cliente.objects.create(usuario=u, nome=nome_cliente, email=email, telefone="9")
+        ag = Agendamento.objects.create(
+            cliente=cliente, profissional=self.prof, servico=self.servico,
+            data_hora=timezone.now() - timedelta(days=1), status=Agendamento.Status.CONCLUIDO,
+        )
+        return Avaliacao.objects.create(agendamento=ag, nota=nota, comentario=comentario)
+
+    def test_cliente_ve_avaliacoes_com_comentario_na_home(self):
+        self.avaliar("Corte impecável")
+        self.logar("cli@x.com")
+        resp = self.client.get(reverse("home"))
+        self.assertContains(resp, self.TITULO)
+        self.assertContains(resp, "Corte impecável")
+        self.assertContains(resp, "Lucas")
+        self.assertNotContains(resp, "Pereira")
+        self.assertContains(resp, "Corte com Barbeiro")
+
+    def test_sem_comentario_nao_aparece_e_secao_some(self):
+        self.avaliar("")
+        self.logar("cli@x.com")
+        self.assertNotContains(self.client.get(reverse("home")), self.TITULO)
+
+    def test_profissional_nao_ve_a_secao(self):
+        self.avaliar("Muito bom")
+        self.logar("bar@x.com")
+        self.assertNotContains(self.client.get(reverse("home")), self.TITULO)
+
+    def test_mostra_as_8_mais_recentes(self):
+        agora = timezone.now()
+        for i in range(10):
+            a = self.avaliar(f"comentario numero {i:02d}", nome_cliente=f"C{i}")
+            Avaliacao.objects.filter(pk=a.pk).update(criado_em=agora - timedelta(hours=10 - i))
+        self.logar("cli@x.com")
+        html = self.client.get(reverse("home")).content.decode()
+        self.assertIn("comentario numero 09", html)
+        self.assertIn("comentario numero 02", html)
+        self.assertNotIn("comentario numero 01", html)
+        self.assertEqual(html.count('class="avaliacao-card'), 8)
+
+    def test_uma_avaliacao_so_nao_mostra_setas(self):
+        self.avaliar("Único comentário")
+        self.logar("cli@x.com")
+        self.assertNotContains(self.client.get(reverse("home")), "data-avaliacao-proxima")
+
+    def test_comentario_com_html_sai_escapado(self):
+        self.avaliar("<script>alert(1)</script>")
+        self.logar("cli@x.com")
+        resp = self.client.get(reverse("home"))
+        self.assertNotContains(resp, "<script>alert(1)</script>")
+        self.assertContains(resp, "&lt;script&gt;")
+
+    def test_primeiro_nome_de_cliente_sem_nome(self):
+        self.assertEqual(Cliente(nome="  ").primeiro_nome, "")
+        self.assertEqual(Cliente(nome=" Ana  Clara ").primeiro_nome, "Ana")
+
+
+class ResetarDemoTests(TestCase):
+    def resetar(self):
+        call_command("resetar_demo", stdout=StringIO())
+
+    def test_cria_avaliacoes_de_exemplo_quando_ha_servico(self):
+        Servico.objects.create(nome="Corte", duracao_minutos=30, preco=40)
+        self.resetar()
+        self.assertEqual(Avaliacao.objects.exclude(comentario="").count(), 5)
+        self.assertTrue(all(a.agendamento.status == Agendamento.Status.CONCLUIDO
+                            and a.agendamento.data_hora < timezone.now()
+                            for a in Avaliacao.objects.select_related("agendamento")))
+        self.assertEqual(Profissional.objects.count(), 4)
+        self.assertEqual(Cliente.objects.count(), 5)
+        self.assertEqual(EmailEnviado.objects.count(), 0)
+        self.assertEqual(len(mail.outbox), 0)
+
+    def test_sem_servico_nao_cria_avaliacoes(self):
+        self.resetar()
+        self.assertFalse(Avaliacao.objects.exists())
+        self.assertEqual(Profissional.objects.count(), 4)
+
+    def test_rodar_duas_vezes_nao_duplica(self):
+        Servico.objects.create(nome="Corte", duracao_minutos=30, preco=40)
+        self.resetar()
+        self.resetar()
+        self.assertEqual(Avaliacao.objects.count(), 5)
+
+
+
+class PaginaSobreTests(BaseComPerfis):
+    FOTOS = ("cadeira-logo.jpg", "cadeira-classica.jpg", "recepcao.jpg", "fachada.jpg")
+
+    def test_sobre_abre_sem_login(self):
+        resp = self.client.get(reverse("sobre"))
+        self.assertEqual(resp.status_code, 200)
+        for texto in ("Nossa história", "Nosso espaço", "Fale com a gente", "Onde estamos",
+                      "(11) 90000-0000", "@barberhouse.oficial", "Desde 2015"):
+            self.assertContains(resp, texto)
+
+    def test_contatos_sem_link(self):
+        html = self.client.get(reverse("sobre")).content.decode()
+        for alvo in ("instagram.com", "wa.me", "whatsapp.com", "tiktok.com", "tel:"):
+            self.assertNotIn(alvo, html)
+
+    def test_quatro_fotos_com_alt_sem_repetir(self):
+        # A fachada fica ao lado da historia; as outras 3 formam a galeria
+        html = self.client.get(reverse("sobre")).content.decode()
+        galeria = html.split('class="sobre-galeria"', 1)[1].split("</section>", 1)[0]
+        self.assertEqual(len(re.findall(r"<img[^>]*>", galeria)), 3)
+        imgs = re.findall(r"<img[^>]*>", html.split("<main", 1)[1])
+        self.assertEqual(len(imgs), 4)
+        self.assertEqual(len({re.search(r'src="([^"]+)"', i).group(1) for i in imgs}), 4)
+        for img in imgs:
+            self.assertRegex(img, r'alt="[^"]+"')
+            self.assertRegex(img, r'width="\d+" height="\d+"')
+
+    def test_fotos_existem_e_sao_leves(self):
+        from django.contrib.staticfiles import finders
+        for nome in self.FOTOS:
+            caminho = finders.find(f"agendamentos/sobre/{nome}")
+            self.assertIsNotNone(caminho, nome)
+            self.assertLessEqual(Path(caminho).stat().st_size, 300_000, nome)
+        html = self.client.get(reverse("sobre")).content.decode()
+        for nome in self.FOTOS:
+            self.assertIn(f"agendamentos/sobre/{nome}", html)
+
+    def test_barra_e_home_levam_a_sobre(self):
+        self.logar("cli@x.com")
+        html = self.client.get(reverse("home")).content.decode()
+        self.assertEqual(html.count('href="/sobre/"'), 2)  # barra + card da Home
+        self.assertIn("Nossa história, espaço e contatos.", html)
+        self.assertNotIn('href="/mais/"', html)
+
+    def test_mais_saiu(self):
+        self.assertEqual(self.client.get("/mais/").status_code, 404)

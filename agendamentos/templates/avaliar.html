@@ -31,6 +31,7 @@
             <div class="campo">
                 <label for="comentario">Comentário <span class="opcional">(opcional)</span></label>
                 <textarea id="comentario" name="comentario" rows="4" maxlength="500" placeholder="O que você achou do corte e do atendimento?">{{ form.comentario.value|default:'' }}</textarea>
+                <small class="dica-campo">Seu comentário e seu primeiro nome podem aparecer na página inicial para outros clientes.</small>
                 {% for error in form.comentario.errors %}<small class="erro-campo">{{ error }}</small>{% endfor %}
             </div>
 

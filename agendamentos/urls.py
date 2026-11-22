@@ -36,5 +36,6 @@ urlpatterns = [
     path('agendamento/<int:agendamento_id>/avaliar/', views.avaliar_atendimento, name='avaliar_atendimento'),
     # Placeholder URLs
     path('noticias/', views.noticias, name='noticias'),
-    path('mais/', views.mais, name='mais'),
+    path('noticias/resgatar-cupom/', views.resgatar_cupom, name='resgatar_cupom'),
+    path('sobre/', views.sobre, name='sobre'),
 ]

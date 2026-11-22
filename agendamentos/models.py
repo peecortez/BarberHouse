@@ -2,22 +2,39 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.core.validators import MaxValueValidator, MinValueValidator
 
-# Create your models here.
+def primeiro_nome(nome):
+    """Primeira palavra do nome, ou '' se nao houver nome."""
+    partes = (nome or '').split()
+    return partes[0] if partes else ''
+
+
 class Cliente(models.Model):
     usuario = models.OneToOneField(User, on_delete=models.CASCADE)
     nome = models.CharField(max_length=100)
     email = models.EmailField(unique=True)
     telefone = models.CharField(max_length=15)
     cpf = models.CharField(max_length=11, unique=True, null=True, blank=True)
+    # Cupom de 15%: o cliente resgata em Noticias, e so depois o profissional
+    # pode aplica-lo ao concluir um atendimento (uso unico).
     cupom_resgatado_em = models.DateTimeField(null=True, blank=True)
+    cupom_usado_em = models.DateTimeField(null=True, blank=True)
+
+    @property
+    def primeiro_nome(self):
+        return primeiro_nome(self.nome)
 
     @property
     def cupom_resgatado(self):
         return self.cupom_resgatado_em is not None
 
     @property
+    def cupom_usado(self):
+        return self.cupom_usado_em is not None
+
+    @property
     def cupom_disponivel(self):
-        return bool(self.cpf) and not self.cupom_resgatado
+        """O profissional pode aplicar: tem CPF, resgatou e ainda nao usou."""
+        return bool(self.cpf) and self.cupom_resgatado and not self.cupom_usado
 
     @property
     def codigo_promocao(self):

@@ -8,7 +8,7 @@ Contexto do projeto para o Claude Code. O README explica o que o sistema faz e c
 - **Sempre atualizar o `README.md`** quando uma mudança alterar funcionalidades, estrutura, templates ou identidade visual.
 - **Perguntar antes de aplicar um conceito visual novo** (nova referência, mudança de estilo): apresentar o que se pode aproveitar e deixar o usuário escolher.
 - Conversar em português.
-- Trabalho visual em andamento na branch `refinamentos-visuais` (não mexer na `main`).
+- Uma branch por funcionalidade, criada a partir da `main` atualizada (ex.: `emails-e-avaliacoes`). Nunca trabalhar direto na `main`: ela só recebe mudanças por Pull Request no GitHub, com merge feito pelo usuário.
 - A pasta `referencias/` (originais do logo, fundos, SVGs, prints) fica só local, no `.gitignore`. O que o site usa está em `agendamentos/static/`.
 - Quando o usuário pedir ajuda para commitar, só passar o passo a passo: ele mesmo roda o commit e o push.
 
@@ -16,7 +16,7 @@ Contexto do projeto para o Claude Code. O README explica o que o sistema faz e c
 
 - Windows. O Python não está no PATH: use `.\venv\Scripts\python.exe`.
 - O repositório git é esta pasta (`BarberHouse\BarberHouse`), não a pasta de fora.
-- Testes: `.\venv\Scripts\python.exe manage.py test agendamentos` (81 testes, todos passando na última vez).
+- Testes: `.\venv\Scripts\python.exe manage.py test agendamentos` (106 testes, todos passando na última vez).
 - E-mail: credenciais do Gmail só no `.env` (no `.gitignore`; sem arquivo de modelo: o projeto só roda na máquina do usuário). Sem `.env`, os e-mails saem no console. Todo envio passa por `agendamentos/emails.py::enviar` (teto diário e registro em `EmailEnviado`). Nunca enviar direto com `send_mail`.
 - Contas novas nascem `is_active=False` até confirmar o e-mail. Usuários criados com `create_user` nos testes já são ativos.
 - Servidor: `.\venv\Scripts\python.exe manage.py runserver`.
@@ -25,6 +25,8 @@ Contexto do projeto para o Claude Code. O README explica o que o sistema faz e c
 
 - Templates herdam de `base.html` → `base_auth.html` (login/cadastro) ou `base_app.html` (telas internas, com a barra de navegação).
 - `_logo.html`: logo (bigode + "barberhouse" + slogan) do login, cadastro e abertura.
+- `_avaliacoes_destaque.html`: avaliações em pilha na Home do cliente (referência: Animated Testimonials, da Aceternity, recriada em CSS/JS puros). Os cards de trás escondem o conteúdo: através do vidro, ele virava um halo em volta da inicial.
+- `sobre.html`: página Sobre (substituiu o antigo "Mais"). Conteúdo fixo e fictício; contatos só em texto, sem link (contas reais com esses nomes podem existir). Fotos coloridas em `static/agendamentos/sobre/`, originais em `referencias/sobre/`.
 - `_toasts.html`: notificações. `agendamentos/context_processors.py` entrega `tipo_usuario` e `primeiro_nome` a todos os templates.
 - Todo o CSS em `agendamentos/static/agendamentos/barbearia.css` (variáveis no topo: `--cor-*`, `--raio-*`, `--fonte-*`, `--vidro-*`, `--ease-*`). Todo o JS em `menu.js`.
 - CSS e JS são carregados com a tag `static_v` (cache-busting).
@@ -38,9 +40,9 @@ Contexto do projeto para o Claude Code. O README explica o que o sistema faz e c
   - `fundo-home.jpg` (poste de barbeiro): Home. Mantém o vermelho/azul do poste, de propósito.
   - `fundo-agendamentos.jpg` (cadeira): Agendar e Meus agendamentos.
   - `fundo-barbearia.jpg`: demais telas e login/cadastro.
-- **Logo oficial adaptado ao tema escuro:** bigode e "barber" claros, "house" em âmbar (o original é ferrugem `#b9512a`).
+- **Logo oficial adaptado ao tema escuro:** bigode e "barber" claros, "house" em âmbar (o original é ferrugem `#b9512a`; o usuário decidiu manter o âmbar).
   - Home: SVG completo animado colado direto em `home.html`.
-  - Barra: só o bigode animado (SVG) em `base_app.html`.
+  - Barra: só o bigode animado (SVG) em `base_app.html`. A ponta só gira com o mouse ou o foco em cima (`ligarBigodeNoHover` no `menu.js`; o SMIL usa `begin="indefinite"`).
   - Login/cadastro/abertura: `_logo.html` (bigode como máscara `logo-bigode.png` + nome em Inter).
   - Favicon mantém as cores originais (bigode escuro sobre creme).
 - **Título em dois tons na Home:** "Olá, Nome." branco + "O que vamos fazer hoje?" cinza.
@@ -53,8 +55,6 @@ Contexto do projeto para o Claude Code. O README explica o que o sistema faz e c
 
 ## Pendências (decisão do usuário)
 
-- Cor de "house" no logo: manter âmbar ou usar o ferrugem original (uma linha no CSS: `.svg-destaque` e `.logo-nome-destaque`).
-- O bigode da barra gira o tempo todo; alternativa oferecida: girar só no hover.
 - O usuário ainda precisa testar no navegador real a transição card → página e a abertura (não dá para ver no headless).
 
 ## Verificação visual
@@ -64,6 +64,8 @@ Contexto do projeto para o Claude Code. O README explica o que o sistema faz e c
 - Cuidados:
   - O headless tem largura mínima de ~492px. Para celular, use um `iframe` de 390px numa página wrapper.
   - Páginas abertas como `file://` não mostram `mask-image` (o bigode do `_logo.html`). Teste pelo `runserver` ou embuta a máscara como data URI.
+  - `runserver --noreload` guarda os templates em cache: depois de editar um template, reinicie o servidor antes de capturar.
+  - Para capturar sem mexer no `db.sqlite3`, use um settings no scratchpad com outro banco e um middleware que faz login sozinho.
   - O relógio virtual do headless pausa durante carregamentos. Para ver o meio de uma animação, congele com `animation-play-state: paused` e `animation-delay` negativo.
 - O headless é Chromium e não reproduz o Safari do iPhone (WebKit). O usuário testa no iPhone real com `cloudflared tunnel --url http://localhost:8000`.
 - Cuidados conhecidos no iOS (já tratados no CSS):
